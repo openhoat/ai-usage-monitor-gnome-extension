@@ -19,6 +19,10 @@ cp "$PROJECT_DIR/extension/extension.js" "$EXTENSION_DIR/"
 cp "$PROJECT_DIR/extension/prefs.js" "$EXTENSION_DIR/"
 cp "$PROJECT_DIR/extension/stylesheet.css" "$EXTENSION_DIR/"
 
+# Copy icons
+mkdir -p "$EXTENSION_DIR/icons"
+cp "$PROJECT_DIR/extension/icons/"*.svg "$EXTENSION_DIR/icons/"
+
 # Copy fetch-usage script
 cp "$PROJECT_DIR/dist/fetch-usage.js" "$EXTENSION_DIR/"
 

@@ -102,9 +102,14 @@ const ClaudeUsageIndicator = GObject.registerClass(
       });
 
       // Icon
+      const iconPath = GLib.build_filenamev([
+        extensionObj.path,
+        "icons",
+        "ai-usage-monitor-symbolic.svg",
+      ]);
       this._icon = new St.Icon({
         style_class: "ai-usage-icon system-status-icon",
-        icon_name: "dialog-information-symbolic",
+        gicon: Gio.icon_new_for_string(iconPath),
       });
       panelBox.add_child(this._icon);
 

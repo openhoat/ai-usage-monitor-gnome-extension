@@ -6,6 +6,10 @@ This file tracks modifications to the AI Usage Monitor GNOME extension project.
 
 ### 21/02
 
+**[15:19:00] ✨ [FEAT]** Add custom symbolic gauge SVG icon for the GNOME extension panel
+**[15:18:00] ✨ [FEAT]** Integrate custom icon into extension.js (gicon) and prefs.js (icon theme)
+**[15:17:00] 🔧 [CHORE]** Update install.sh to copy icons directory during installation
+**[15:14:00] 🔧 [CHORE]** Import Claude/Cline configuration from termaid project (skills, agents, rules, clinerules)
 **[13:05:00] 🎨 [UX]** Rename project to "AI Usage Monitor"
 **[11:45:00] 📝 [DOCS]** Add .claude/ rules, skills, and workflows structure inspired by termaid project
 **[11:44:00] 📝 [DOCS]** Create KANBAN.md with initial backlog task

@@ -1,4 +1,6 @@
 import Adw from "gi://Adw";
+import Gdk from "gi://Gdk";
+import GLib from "gi://GLib";
 import Gtk from "gi://Gtk";
 
 import {
@@ -10,10 +12,16 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
   fillPreferencesWindow(window) {
     const settings = this.getSettings();
 
+    // Register custom icon theme path
+    const iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+    iconTheme.add_search_path(
+      GLib.build_filenamev([this.path, "icons"]),
+    );
+
     // Main page
     const page = new Adw.PreferencesPage({
       title: _("AI Usage Monitor"),
-      icon_name: "dialog-information-symbolic",
+      icon_name: "ai-usage-monitor-symbolic",
     });
     window.add(page);
 
