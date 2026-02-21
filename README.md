@@ -1,13 +1,21 @@
 # AI Usage Monitor - GNOME Shell Extension
 
-A GNOME Shell extension that displays your Claude.ai Pro subscription usage in real-time in the top bar.
+A GNOME Shell extension that monitors your AI subscription usage in real-time in the top bar. Supports multiple AI providers.
+
+## Supported Providers
+
+| Provider | Authentication | Usage Data |
+|----------|---------------|------------|
+| **Claude** (Anthropic) | Session cookie | Tier usage (Standard 5h, Extended 7d) |
+| **OpenAI** | API key | Monthly costs by model |
 
 ## Features
 
+- **Multi-provider support**: Monitor Claude, OpenAI, or other AI services
 - **Real-time usage display**: Shows your current usage percentage in the GNOME top bar
-- **Multi-tier support**: Displays usage for Standard (5h) and Extended (7d) tiers
+- **Multi-tier support**: Displays usage breakdown by tier or model
 - **Visual indicators**: Color-coded usage levels (violet < 50%, orange 50-80%, red > 80%)
-- **Dropdown menu**: Detailed breakdown by tier with progress bars
+- **Dropdown menu**: Detailed breakdown with progress bars
 - **Reset countdown**: Shows when your usage will reset
 - **Configurable refresh**: Set custom refresh interval (5-120 minutes)
 
@@ -39,7 +47,7 @@ cd ai-usage-monitor
    ```bash
    mkdir -p ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev
    cp -r extension/* ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev/
-   cp dist/fetch-usage.js ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev/
+   cp -r dist/* ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev/
    cp -r node_modules ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev/
    glib-compile-schemas ~/.local/share/gnome-shell/extensions/ai-usage-monitor@openhoat.dev/schemas/
    ```
@@ -53,17 +61,25 @@ cd ai-usage-monitor
 
 ## Configuration
 
-### Setting the Session Cookie
+Open the extension preferences to select your provider and enter credentials:
+
+```bash
+gnome-extensions prefs ai-usage-monitor@openhoat.dev
+```
+
+### Claude Setup
 
 1. Open [claude.ai](https://claude.ai) and log in
 2. Open Developer Tools (F12)
 3. Go to Application → Cookies → `https://claude.ai`
 4. Copy the value of `sessionKey`
-5. Open extension preferences:
-   ```bash
-   gnome-extensions prefs ai-usage-monitor@openhoat.dev
-   ```
-6. Paste the session key in the "Session Cookie" field
+5. In the extension preferences, select **Claude (Anthropic)** and paste the session key
+
+### OpenAI Setup
+
+1. Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. In the extension preferences, select **OpenAI (ChatGPT)** and paste the API key
 
 ### Refresh Interval
 
@@ -71,29 +87,32 @@ By default, the extension refreshes usage data every 30 minutes. You can adjust 
 
 ## Architecture
 
-The extension consists of two main components:
+The extension uses a **provider-based architecture** with two main components:
 
-### 1. TypeScript Fetch Script (`src/fetch-usage.ts`)
+### 1. TypeScript Fetch Script (`src/`)
 
-- Scrapes usage data from Claude.ai internal API endpoints
-- Uses `fetch` (native in Node.js 24) and `cheerio` for HTML parsing
-- Returns JSON with tier usage and reset information
-- Can be tested independently: `node dist/fetch-usage.js <cookie>`
+- **`fetch-usage.ts`**: Entry point — dispatches to the selected provider
+- **`providers/claude.ts`**: Claude provider — scrapes usage via API and HTML fallback
+- **`providers/openai.ts`**: OpenAI provider — fetches monthly costs via API
+- **`providers/index.ts`**: Provider registry
+- **`types.ts`**: Shared interfaces (`UsageResult`, `Provider`, etc.)
 
 ### 2. GNOME Shell Extension (`extension/`)
 
 - **extension.js**: Panel indicator, dropdown menu, and polling logic (GJS)
-- **prefs.js**: Adw preferences dialog for cookie and interval settings
+- **prefs.js**: Adw preferences dialog with provider selector and credentials
 - **stylesheet.css**: Styling for usage bars and color levels
+- **icons/**: Custom gauge SVG icon
 - **schemas/**: GSettings schema for persistent configuration
 
 ## API Response Format
 
-The extension expects JSON output from the fetch script:
+All providers return the same JSON format:
 
 ```json
 {
   "status": "ok",
+  "provider": "claude",
   "plan": "pro",
   "tiers": [
     { "name": "Standard (5h)", "percentage": 42.0 },
@@ -110,24 +129,37 @@ The extension expects JSON output from the fetch script:
 ```
 ai-usage-monitor/
 ├── src/
-│   └── fetch-usage.ts          # TypeScript scraping script
-├── dist/
-│   └── fetch-usage.js          # Compiled script
+│   ├── fetch-usage.ts              # Entry point (provider dispatcher)
+│   ├── types.ts                    # Shared interfaces
+│   └── providers/
+│       ├── index.ts                # Provider registry
+│       ├── claude.ts               # Claude provider
+│       └── openai.ts               # OpenAI provider
+├── dist/                           # Compiled output
 ├── extension/
-│   ├── metadata.json           # Extension metadata
-│   ├── extension.js            # Main extension code
-│   ├── prefs.js                # Preferences dialog
-│   ├── stylesheet.css          # CSS styling
+│   ├── metadata.json               # Extension metadata
+│   ├── extension.js                # Main extension code
+│   ├── prefs.js                    # Preferences dialog
+│   ├── stylesheet.css              # CSS styling
+│   ├── icons/
+│   │   └── ai-usage-monitor-symbolic.svg
 │   └── schemas/
 │       └── org.gnome.shell.extensions.ai-usage-monitor.gschema.xml
-├── .claude/                    # Claude Code rules and workflows
-├── .clinerules/                # Cline rules and workflows
-├── KANBAN.md                   # Task management
-├── CHANGELOG.md                # Modification history
-├── package.json                # npm configuration
-├── tsconfig.json               # TypeScript configuration
-└── install.sh                  # Build and install script
+├── .claude/                        # Claude Code rules and workflows
+├── .clinerules/                    # Cline rules and workflows
+├── KANBAN.md                       # Task management
+├── CHANGELOG.md                    # Modification history
+├── package.json                    # npm configuration
+├── tsconfig.json                   # TypeScript configuration
+└── install.sh                      # Build and install script
 ```
+
+## Adding a New Provider
+
+1. Create `src/providers/<name>.ts` implementing the `Provider` interface
+2. Register it in `src/providers/index.ts`
+3. Add a GSettings key for credentials in the schema XML
+4. Add UI elements in `extension/prefs.js`
 
 ## Troubleshooting
 
@@ -144,13 +176,13 @@ Make sure Node.js is installed and accessible. The extension looks for Node.js i
 
 ### "Auth expired" error
 
-Your session cookie has expired. Get a fresh `sessionKey` from claude.ai and update it in the extension preferences.
+Your credential has expired. Get a fresh one from your provider and update it in the extension preferences.
 
 ### Extension shows errors
 
 Check the GNOME Shell logs:
 ```bash
-journalctl -f /usr/bin/gnome-shell | grep -i claude
+journalctl -f /usr/bin/gnome-shell | grep -i usage
 ```
 
 ## Development
@@ -164,7 +196,8 @@ npm run build
 ### Testing the fetch script
 
 ```bash
-node dist/fetch-usage.js <your-session-cookie>
+node dist/fetch-usage.js claude <your-session-cookie>
+node dist/fetch-usage.js openai <your-api-key>
 ```
 
 ## License
@@ -178,4 +211,4 @@ Olivier Penhoat <openhoat@gmail.com>
 ## Acknowledgments
 
 - Built with [Claude Code](https://claude.ai/claude-code)
-- Inspired by the need for local Claude usage monitoring
+- Inspired by the need for local AI usage monitoring

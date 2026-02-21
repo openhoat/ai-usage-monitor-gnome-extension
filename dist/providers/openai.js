@@ -1,0 +1,112 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.openaiProvider = void 0;
+function buildHeaders(apiKey) {
+    return {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+    };
+}
+function getMonthBounds() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return {
+        startTime: Math.floor(start.getTime() / 1000),
+        endTime: Math.floor(end.getTime() / 1000),
+    };
+}
+async function fetchMonthlyCosts(apiKey) {
+    const headers = buildHeaders(apiKey);
+    const { startTime, endTime } = getMonthBounds();
+    const costsByModel = new Map();
+    let url = `https://api.openai.com/v1/organization/costs?start_time=${startTime}&end_time=${endTime}&limit=30&group_by=line_item`;
+    try {
+        while (url) {
+            const res = await fetch(url, { headers, redirect: "follow" });
+            if (!res.ok)
+                return null;
+            const data = (await res.json());
+            for (const item of data.data) {
+                const model = item.line_item || "Other";
+                const cents = item.amount?.value ?? 0;
+                costsByModel.set(model, (costsByModel.get(model) ?? 0) + cents);
+            }
+            url = data.has_more && data.next_page ? data.next_page : "";
+        }
+    }
+    catch {
+        return null;
+    }
+    return costsByModel;
+}
+async function fetchBudgetLimit(apiKey) {
+    const headers = buildHeaders(apiKey);
+    try {
+        const res = await fetch("https://api.openai.com/v1/organization/subscription", { headers, redirect: "follow" });
+        if (!res.ok)
+            return null;
+        const data = (await res.json());
+        return data.hard_limit_usd ?? data.soft_limit_usd ?? null;
+    }
+    catch {
+        return null;
+    }
+}
+exports.openaiProvider = {
+    name: "openai",
+    async fetchUsage(apiKey) {
+        const costsByModel = await fetchMonthlyCosts(apiKey);
+        if (!costsByModel)
+            return null;
+        const totalCents = Array.from(costsByModel.values()).reduce((sum, v) => sum + v, 0);
+        const totalDollars = totalCents / 100;
+        const budgetLimit = await fetchBudgetLimit(apiKey);
+        const tiers = [];
+        if (budgetLimit && budgetLimit > 0) {
+            // Show overall usage as percentage of budget
+            tiers.push({
+                name: `Monthly ($${totalDollars.toFixed(2)}/$${budgetLimit.toFixed(0)})`,
+                percentage: Math.round((totalDollars / budgetLimit) * 10000) / 100,
+            });
+        }
+        else {
+            // No budget limit — show spend info as-is
+            tiers.push({
+                name: `Monthly Spend`,
+                percentage: 0,
+            });
+        }
+        // Add per-model breakdown (top models only)
+        const sorted = Array.from(costsByModel.entries())
+            .filter(([, v]) => v > 0)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5);
+        for (const [model, cents] of sorted) {
+            const modelDollars = cents / 100;
+            const modelPct = totalCents > 0
+                ? Math.round((cents / totalCents) * 10000) / 100
+                : 0;
+            tiers.push({
+                name: `${model} ($${modelDollars.toFixed(2)})`,
+                percentage: modelPct,
+            });
+        }
+        const overallPercentage = budgetLimit && budgetLimit > 0
+            ? Math.round((totalDollars / budgetLimit) * 10000) / 100
+            : 0;
+        // Reset at end of month
+        const { endTime } = getMonthBounds();
+        const resetDate = new Date(endTime * 1000).toISOString();
+        const resetInHours = Math.max(0, Math.round((endTime * 1000 - Date.now()) / 3600000));
+        return {
+            status: "ok",
+            provider: "openai",
+            plan: budgetLimit ? "api" : "api",
+            tiers,
+            overall_percentage: overallPercentage,
+            reset_date: resetDate,
+            reset_in_hours: resetInHours,
+        };
+    },
+};

@@ -8,7 +8,12 @@ import {
   gettext as _,
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
-export default class ClaudeUsagePreferences extends ExtensionPreferences {
+const PROVIDERS = [
+  { id: "claude", name: "Claude (Anthropic)" },
+  { id: "openai", name: "OpenAI (ChatGPT)" },
+];
+
+export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   fillPreferencesWindow(window) {
     const settings = this.getSettings();
 
@@ -25,16 +30,43 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
     });
     window.add(page);
 
-    // Authentication group
-    const authGroup = new Adw.PreferencesGroup({
-      title: _("Authentication"),
+    // Provider selection group
+    const providerGroup = new Adw.PreferencesGroup({
+      title: _("Provider"),
+      description: _("Select the AI provider to monitor."),
+    });
+    page.add(providerGroup);
+
+    // Provider dropdown
+    const providerModel = new Gtk.StringList();
+    for (const p of PROVIDERS) {
+      providerModel.append(p.name);
+    }
+
+    const providerRow = new Adw.ComboRow({
+      title: _("AI Provider"),
+      subtitle: _("The AI service to monitor usage for"),
+      model: providerModel,
+    });
+
+    // Set initial selection
+    const currentProvider = settings.get_string("provider");
+    const currentIndex = PROVIDERS.findIndex((p) => p.id === currentProvider);
+    if (currentIndex >= 0) {
+      providerRow.set_selected(currentIndex);
+    }
+
+    providerGroup.add(providerRow);
+
+    // Claude authentication group
+    const claudeGroup = new Adw.PreferencesGroup({
+      title: _("Claude Authentication"),
       description: _(
         "To get your session cookie: open claude.ai → F12 → Application tab → Cookies → copy the sessionKey value.",
       ),
     });
-    page.add(authGroup);
+    page.add(claudeGroup);
 
-    // Session cookie entry
     const cookieRow = new Adw.PasswordEntryRow({
       title: _("Session Cookie"),
     });
@@ -42,7 +74,42 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
     cookieRow.connect("changed", () => {
       settings.set_string("session-cookie", cookieRow.get_text());
     });
-    authGroup.add(cookieRow);
+    claudeGroup.add(cookieRow);
+
+    // OpenAI authentication group
+    const openaiGroup = new Adw.PreferencesGroup({
+      title: _("OpenAI Authentication"),
+      description: _(
+        "Enter your API key from platform.openai.com/api-keys.",
+      ),
+    });
+    page.add(openaiGroup);
+
+    const apiKeyRow = new Adw.PasswordEntryRow({
+      title: _("API Key"),
+    });
+    apiKeyRow.set_text(settings.get_string("openai-api-key"));
+    apiKeyRow.connect("changed", () => {
+      settings.set_string("openai-api-key", apiKeyRow.get_text());
+    });
+    openaiGroup.add(apiKeyRow);
+
+    // Show/hide credential groups based on provider
+    function updateVisibility() {
+      const selectedIndex = providerRow.get_selected();
+      const providerId = PROVIDERS[selectedIndex]?.id ?? "claude";
+      claudeGroup.visible = providerId === "claude";
+      openaiGroup.visible = providerId === "openai";
+    }
+
+    providerRow.connect("notify::selected", () => {
+      const selectedIndex = providerRow.get_selected();
+      const providerId = PROVIDERS[selectedIndex]?.id ?? "claude";
+      settings.set_string("provider", providerId);
+      updateVisibility();
+    });
+
+    updateVisibility();
 
     // Refresh settings group
     const refreshGroup = new Adw.PreferencesGroup({
@@ -50,7 +117,6 @@ export default class ClaudeUsagePreferences extends ExtensionPreferences {
     });
     page.add(refreshGroup);
 
-    // Refresh interval
     const intervalRow = new Adw.SpinRow({
       title: _("Refresh Interval"),
       subtitle: _("How often to check usage (in minutes)"),

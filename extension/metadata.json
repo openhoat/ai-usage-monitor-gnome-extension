@@ -1,7 +1,7 @@
 {
   "uuid": "ai-usage-monitor@openhoat.dev",
   "name": "AI Usage Monitor",
-  "description": "Display Claude.ai Pro subscription usage in the top bar",
+  "description": "Monitor AI subscription usage (Claude, OpenAI) in the top bar",
   "version": 1,
   "shell-version": ["49"],
   "url": "https://github.com/openhoat/ai-usage-monitor",

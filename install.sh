@@ -23,8 +23,8 @@ cp "$PROJECT_DIR/extension/stylesheet.css" "$EXTENSION_DIR/"
 mkdir -p "$EXTENSION_DIR/icons"
 cp "$PROJECT_DIR/extension/icons/"*.svg "$EXTENSION_DIR/icons/"
 
-# Copy fetch-usage script
-cp "$PROJECT_DIR/dist/fetch-usage.js" "$EXTENSION_DIR/"
+# Copy compiled scripts (fetch-usage + providers)
+cp -r "$PROJECT_DIR/dist/"* "$EXTENSION_DIR/"
 
 # Copy node_modules (cheerio and dependencies)
 rm -rf "$EXTENSION_DIR/node_modules"
@@ -41,7 +41,7 @@ echo ""
 echo "To enable the extension:"
 echo "  gnome-extensions enable $EXTENSION_UUID"
 echo ""
-echo "To configure (set your session cookie):"
+echo "To configure (select provider and enter credentials):"
 echo "  gnome-extensions prefs $EXTENSION_UUID"
 echo ""
 echo "If running on Wayland (GNOME 49), log out and log back in to load the extension."

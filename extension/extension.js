@@ -260,13 +260,34 @@ const ClaudeUsageIndicator = GObject.registerClass(
       }
     }
 
+    _getCredential() {
+      const provider = this._settings.get_string("provider");
+      switch (provider) {
+        case "openai":
+          return {
+            provider,
+            credential: this._settings.get_string("openai-api-key"),
+            errorMessage:
+              "No OpenAI API key configured. Open Settings to configure.",
+          };
+        case "claude":
+        default:
+          return {
+            provider: "claude",
+            credential: this._settings.get_string("session-cookie"),
+            errorMessage:
+              "No session cookie configured. Open Settings to configure.",
+          };
+      }
+    }
+
     _fetchUsage() {
-      const cookie = this._settings.get_string("session-cookie");
-      if (!cookie) {
+      const { provider, credential, errorMessage } = this._getCredential();
+      if (!credential) {
         this._onUsageData({
           status: "error",
-          error_code: "no_cookie",
-          message: "No session cookie configured. Open Settings to configure.",
+          error_code: "no_credential",
+          message: errorMessage,
         });
         return;
       }
@@ -313,7 +334,7 @@ const ClaudeUsageIndicator = GObject.registerClass(
 
       try {
         const proc = Gio.Subprocess.new(
-          [nodePath, scriptPath, cookie],
+          [nodePath, scriptPath, provider, credential],
           Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
         );
         this._subprocess = proc;
