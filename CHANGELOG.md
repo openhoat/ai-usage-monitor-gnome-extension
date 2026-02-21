@@ -6,6 +6,9 @@ This file tracks modifications to the AI Usage Monitor GNOME extension project.
 
 ### 21/02
 
+**[19:48:00] ✅ [TEST]** Add real connection tests for Ollama provider using session cookie
+**[19:47:00] ✨ [FEAT]** Add Ollama provider with session cookie authentication (web scraping)
+**[17:43:00] ♻️ [REFACTOR]** Switch to multi-provider mode: fetch all configured providers simultaneously, remove provider selector
 **[15:40:00] 📝 [DOCS]** Update README and metadata for multi-provider support
 **[15:39:00] ✨ [FEAT]** Add OpenAI API usage provider (monthly costs by model)
 **[15:38:00] ✨ [FEAT]** Update extension.js to read provider setting and pass to fetch script

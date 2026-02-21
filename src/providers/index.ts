@@ -1,5 +1,6 @@
 import type { Provider } from "../types.js";
 import { claudeProvider } from "./claude.js";
+import { ollamaProvider } from "./ollama.js";
 import { openaiProvider } from "./openai.js";
 
 const providers: Map<string, Provider> = new Map();
@@ -18,4 +19,5 @@ export function getAvailableProviders(): string[] {
 
 // Register built-in providers
 register(claudeProvider);
+register(ollamaProvider);
 register(openaiProvider);

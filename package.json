@@ -5,6 +5,7 @@
   "description": "Monitor Claude.ai subscription usage in GNOME Shell",
   "scripts": {
     "build": "tsc",
+    "dev": "npm run build && bash install.sh && dbus-run-session -- gnome-shell --wayland",
     "start": "node dist/fetch-usage.js"
   },
   "dependencies": {

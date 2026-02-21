@@ -14,6 +14,18 @@ import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
 const POLL_MIN_SECONDS = 60;
 
+const PROVIDER_LABELS = {
+  claude: "Claude",
+  ollama: "Ollama",
+  openai: "OpenAI",
+};
+
+const PROVIDER_CREDENTIALS = {
+  claude: "session-cookie",
+  ollama: "ollama-session-cookie",
+  openai: "openai-api-key",
+};
+
 function getLevelClass(percentage) {
   if (percentage > 80) return "high";
   if (percentage >= 50) return "medium";
@@ -87,14 +99,15 @@ const UsageBarItem = GObject.registerClass(
   },
 );
 
-const ClaudeUsageIndicator = GObject.registerClass(
-  class ClaudeUsageIndicator extends PanelMenu.Button {
+const AiUsageIndicator = GObject.registerClass(
+  class AiUsageIndicator extends PanelMenu.Button {
     _init(extensionObj) {
       super._init(0.0, "AI Usage Monitor");
       this._extensionObj = extensionObj;
       this._settings = extensionObj.getSettings();
       this._pollSourceId = null;
-      this._subprocess = null;
+      this._subprocesses = [];
+      this._providerResults = {};
 
       // Panel box
       const panelBox = new St.BoxLayout({
@@ -135,7 +148,7 @@ const ClaudeUsageIndicator = GObject.registerClass(
       this._startPolling();
 
       // Fetch immediately
-      this._fetchUsage();
+      this._fetchAllProviders();
     }
 
     _buildMenu() {
@@ -153,7 +166,7 @@ const ClaudeUsageIndicator = GObject.registerClass(
 
       this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-      // Dynamic content area (usage bars will go here)
+      // Dynamic content area
       this._contentSection = new PopupMenu.PopupMenuSection();
       this.menu.addMenuItem(this._contentSection);
 
@@ -171,25 +184,10 @@ const ClaudeUsageIndicator = GObject.registerClass(
 
       this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-      // Reset info
-      this._resetItem = new PopupMenu.PopupBaseMenuItem({
-        reactive: false,
-        can_focus: false,
-      });
-      this._resetLabel = new St.Label({
-        text: "",
-        style_class: "ai-usage-reset",
-      });
-      this._resetItem.add_child(this._resetLabel);
-      this.menu.addMenuItem(this._resetItem);
-      this._resetItem.visible = false;
-
-      this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
       // Refresh button
       const refreshItem = new PopupMenu.PopupMenuItem(_("Refresh"));
       refreshItem.connect("activate", () => {
-        this._fetchUsage();
+        this._fetchAllProviders();
       });
       this.menu.addMenuItem(refreshItem);
 
@@ -201,115 +199,52 @@ const ClaudeUsageIndicator = GObject.registerClass(
       this.menu.addMenuItem(settingsItem);
     }
 
-    _onUsageData(data) {
-      // Clear dynamic content
-      this._contentSection.removeAll();
-
-      if (data.status === "error") {
-        this._label.set_text("ERR");
-        this._label.style_class = "ai-usage-label ai-usage-label-high";
-
-        const errorItem = new PopupMenu.PopupBaseMenuItem({
-          reactive: false,
-          can_focus: false,
-        });
-        const errorLabel = new St.Label({
-          text: data.message || "Unknown error",
-          style_class: "ai-usage-status",
-        });
-        errorItem.add_child(errorLabel);
-        this._contentSection.addMenuItem(errorItem);
-
-        this._resetItem.visible = false;
-        return;
-      }
-
-      // Update panel label
-      const pct = Math.round(data.overall_percentage);
-      this._label.set_text(`${pct}%`);
-      const level = getLevelClass(data.overall_percentage);
-      this._label.style_class = `ai-usage-label ai-usage-label-${level}`;
-
-      // Add tier bars
-      if (data.tiers && data.tiers.length > 0) {
-        for (const tier of data.tiers) {
-          this._contentSection.addMenuItem(
-            new UsageBarItem(tier.name, tier.percentage),
-          );
+    _getConfiguredProviders() {
+      const configured = [];
+      for (const [provider, settingKey] of Object.entries(
+        PROVIDER_CREDENTIALS,
+      )) {
+        const credential = this._settings.get_string(settingKey);
+        if (credential) {
+          configured.push({ provider, credential });
         }
-      } else {
-        // Show overall only
-        this._contentSection.addMenuItem(
-          new UsageBarItem("Usage", data.overall_percentage),
-        );
       }
-
-      // Reset info
-      if (data.reset_in_hours !== null && data.reset_in_hours !== undefined) {
-        const resetStr = formatResetTime(data.reset_in_hours);
-        this._resetLabel.set_text(`Resets in ${resetStr}`);
-        this._resetItem.visible = true;
-      } else if (data.reset_date) {
-        const d = new Date(data.reset_date);
-        this._resetLabel.set_text(
-          `Resets on ${d.toLocaleDateString()}`,
-        );
-        this._resetItem.visible = true;
-      } else {
-        this._resetItem.visible = false;
-      }
+      return configured;
     }
 
-    _getCredential() {
-      const provider = this._settings.get_string("provider");
-      switch (provider) {
-        case "openai":
-          return {
-            provider,
-            credential: this._settings.get_string("openai-api-key"),
-            errorMessage:
-              "No OpenAI API key configured. Open Settings to configure.",
-          };
-        case "claude":
-        default:
-          return {
-            provider: "claude",
-            credential: this._settings.get_string("session-cookie"),
-            errorMessage:
-              "No session cookie configured. Open Settings to configure.",
-          };
-      }
-    }
+    _fetchAllProviders() {
+      const configured = this._getConfiguredProviders();
 
-    _fetchUsage() {
-      const { provider, credential, errorMessage } = this._getCredential();
-      if (!credential) {
-        this._onUsageData({
-          status: "error",
-          error_code: "no_credential",
-          message: errorMessage,
-        });
+      if (configured.length === 0) {
+        this._onAllResults({});
         return;
       }
 
-      // Find node and fetch-usage.js
+      this._providerResults = {};
+      this._pendingFetches = configured.length;
+
+      for (const { provider, credential } of configured) {
+        this._fetchProvider(provider, credential);
+      }
+    }
+
+    _fetchProvider(provider, credential) {
       const extensionDir = this._extensionObj.path;
       const scriptPath = GLib.build_filenamev([
         extensionDir,
         "fetch-usage.js",
       ]);
 
-      // Check if script exists
       if (!GLib.file_test(scriptPath, GLib.FileTest.EXISTS)) {
-        this._onUsageData({
+        this._onProviderResult(provider, {
           status: "error",
           error_code: "script_missing",
-          message: `fetch-usage.js not found in extension directory`,
+          message: "fetch-usage.js not found",
         });
         return;
       }
 
-      // Find node binary — check Volta paths and common locations
+      // Find node binary
       let nodePath = null;
       const nodeCandidates = [
         GLib.build_filenamev([GLib.get_home_dir(), ".volta", "bin", "node"]),
@@ -324,10 +259,10 @@ const ClaudeUsageIndicator = GObject.registerClass(
       }
 
       if (!nodePath) {
-        this._onUsageData({
+        this._onProviderResult(provider, {
           status: "error",
           error_code: "node_missing",
-          message: "Node.js not found. Install Node.js to use this extension.",
+          message: "Node.js not found",
         });
         return;
       }
@@ -337,36 +272,40 @@ const ClaudeUsageIndicator = GObject.registerClass(
           [nodePath, scriptPath, provider, credential],
           Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
         );
-        this._subprocess = proc;
+        this._subprocesses.push(proc);
 
         proc.communicate_utf8_async(null, null, (source, res) => {
           try {
             const [, stdout, stderr] = source.communicate_utf8_finish(res);
-            this._subprocess = null;
+            this._subprocesses = this._subprocesses.filter(
+              (p) => p !== source,
+            );
 
             if (stdout && stdout.trim()) {
               try {
                 const data = JSON.parse(stdout.trim());
-                this._onUsageData(data);
+                this._onProviderResult(provider, data);
               } catch (e) {
-                this._onUsageData({
+                this._onProviderResult(provider, {
                   status: "error",
                   error_code: "parse_error",
-                  message: `Failed to parse output: ${e.message}`,
+                  message: `Parse error: ${e.message}`,
                 });
               }
             } else {
-              this._onUsageData({
+              this._onProviderResult(provider, {
                 status: "error",
                 error_code: "no_output",
                 message: stderr
-                  ? `Script error: ${stderr.trim()}`
+                  ? `Error: ${stderr.trim()}`
                   : "No output from fetch script",
               });
             }
           } catch (e) {
-            this._subprocess = null;
-            this._onUsageData({
+            this._subprocesses = this._subprocesses.filter(
+              (p) => p !== source,
+            );
+            this._onProviderResult(provider, {
               status: "error",
               error_code: "subprocess_error",
               message: `Subprocess error: ${e.message}`,
@@ -374,11 +313,117 @@ const ClaudeUsageIndicator = GObject.registerClass(
           }
         });
       } catch (e) {
-        this._onUsageData({
+        this._onProviderResult(provider, {
           status: "error",
           error_code: "spawn_error",
-          message: `Failed to spawn process: ${e.message}`,
+          message: `Spawn error: ${e.message}`,
         });
+      }
+    }
+
+    _onProviderResult(provider, data) {
+      this._providerResults[provider] = data;
+      this._pendingFetches--;
+
+      if (this._pendingFetches <= 0) {
+        this._onAllResults(this._providerResults);
+      }
+    }
+
+    _onAllResults(results) {
+      this._contentSection.removeAll();
+
+      const providers = Object.keys(results);
+
+      if (providers.length === 0) {
+        this._label.set_text("--");
+        this._label.style_class = "ai-usage-label";
+
+        const noConfigItem = new PopupMenu.PopupBaseMenuItem({
+          reactive: false,
+          can_focus: false,
+        });
+        noConfigItem.add_child(
+          new St.Label({
+            text: _("No providers configured. Open Settings."),
+            style_class: "ai-usage-status",
+          }),
+        );
+        this._contentSection.addMenuItem(noConfigItem);
+        return;
+      }
+
+      // Collect all successful percentages for the panel label
+      let maxPercentage = 0;
+      let hasSuccess = false;
+
+      for (const provider of providers) {
+        const data = results[provider];
+        const label = PROVIDER_LABELS[provider] || provider;
+
+        // Provider header separator
+        this._contentSection.addMenuItem(
+          new PopupMenu.PopupSeparatorMenuItem(label),
+        );
+
+        if (data.status === "error") {
+          const errorItem = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            can_focus: false,
+          });
+          errorItem.add_child(
+            new St.Label({
+              text: data.message || "Unknown error",
+              style_class: "ai-usage-status",
+            }),
+          );
+          this._contentSection.addMenuItem(errorItem);
+          continue;
+        }
+
+        hasSuccess = true;
+        if (data.overall_percentage > maxPercentage) {
+          maxPercentage = data.overall_percentage;
+        }
+
+        // Tier bars
+        if (data.tiers && data.tiers.length > 0) {
+          for (const tier of data.tiers) {
+            this._contentSection.addMenuItem(
+              new UsageBarItem(tier.name, tier.percentage),
+            );
+          }
+        }
+
+        // Reset info per provider
+        if (
+          data.reset_in_hours !== null &&
+          data.reset_in_hours !== undefined
+        ) {
+          const resetStr = formatResetTime(data.reset_in_hours);
+          const resetItem = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            can_focus: false,
+          });
+          resetItem.add_child(
+            new St.Label({
+              text: `Resets in ${resetStr}`,
+              style_class: "ai-usage-reset",
+            }),
+          );
+          this._contentSection.addMenuItem(resetItem);
+        }
+      }
+
+      // Update panel label with max usage across all providers
+      if (hasSuccess) {
+        const pct = Math.round(maxPercentage);
+        this._label.set_text(`${pct}%`);
+        const level = getLevelClass(maxPercentage);
+        this._label.style_class = `ai-usage-label ai-usage-label-${level}`;
+      } else {
+        this._label.set_text("ERR");
+        this._label.style_class = "ai-usage-label ai-usage-label-high";
       }
     }
 
@@ -390,7 +435,7 @@ const ClaudeUsageIndicator = GObject.registerClass(
         GLib.PRIORITY_DEFAULT,
         seconds,
         () => {
-          this._fetchUsage();
+          this._fetchAllProviders();
           return GLib.SOURCE_CONTINUE;
         },
       );
@@ -405,16 +450,16 @@ const ClaudeUsageIndicator = GObject.registerClass(
 
     _restartPolling() {
       this._startPolling();
-      this._fetchUsage();
+      this._fetchAllProviders();
     }
 
     destroy() {
       this._stopPolling();
 
-      if (this._subprocess) {
-        this._subprocess.force_exit();
-        this._subprocess = null;
+      for (const proc of this._subprocesses) {
+        proc.force_exit();
       }
+      this._subprocesses = [];
 
       if (this._settingsChangedId) {
         this._settings.disconnect(this._settingsChangedId);
@@ -426,9 +471,9 @@ const ClaudeUsageIndicator = GObject.registerClass(
   },
 );
 
-export default class ClaudeUsageExtension extends Extension {
+export default class AiUsageExtension extends Extension {
   enable() {
-    this._indicator = new ClaudeUsageIndicator(this);
+    this._indicator = new AiUsageIndicator(this);
     Main.panel.addToStatusArea(this.uuid, this._indicator);
   }
 

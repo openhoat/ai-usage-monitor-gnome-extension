@@ -8,11 +8,6 @@ import {
   gettext as _,
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
-const PROVIDERS = [
-  { id: "claude", name: "Claude (Anthropic)" },
-  { id: "openai", name: "OpenAI (ChatGPT)" },
-];
-
 export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   fillPreferencesWindow(window) {
     const settings = this.getSettings();
@@ -30,37 +25,9 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
     });
     window.add(page);
 
-    // Provider selection group
-    const providerGroup = new Adw.PreferencesGroup({
-      title: _("Provider"),
-      description: _("Select the AI provider to monitor."),
-    });
-    page.add(providerGroup);
-
-    // Provider dropdown
-    const providerModel = new Gtk.StringList();
-    for (const p of PROVIDERS) {
-      providerModel.append(p.name);
-    }
-
-    const providerRow = new Adw.ComboRow({
-      title: _("AI Provider"),
-      subtitle: _("The AI service to monitor usage for"),
-      model: providerModel,
-    });
-
-    // Set initial selection
-    const currentProvider = settings.get_string("provider");
-    const currentIndex = PROVIDERS.findIndex((p) => p.id === currentProvider);
-    if (currentIndex >= 0) {
-      providerRow.set_selected(currentIndex);
-    }
-
-    providerGroup.add(providerRow);
-
     // Claude authentication group
     const claudeGroup = new Adw.PreferencesGroup({
-      title: _("Claude Authentication"),
+      title: _("Claude (Anthropic)"),
       description: _(
         "To get your session cookie: open claude.ai → F12 → Application tab → Cookies → copy the sessionKey value.",
       ),
@@ -78,7 +45,7 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
 
     // OpenAI authentication group
     const openaiGroup = new Adw.PreferencesGroup({
-      title: _("OpenAI Authentication"),
+      title: _("OpenAI (ChatGPT)"),
       description: _(
         "Enter your API key from platform.openai.com/api-keys.",
       ),
@@ -94,22 +61,23 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
     });
     openaiGroup.add(apiKeyRow);
 
-    // Show/hide credential groups based on provider
-    function updateVisibility() {
-      const selectedIndex = providerRow.get_selected();
-      const providerId = PROVIDERS[selectedIndex]?.id ?? "claude";
-      claudeGroup.visible = providerId === "claude";
-      openaiGroup.visible = providerId === "openai";
-    }
-
-    providerRow.connect("notify::selected", () => {
-      const selectedIndex = providerRow.get_selected();
-      const providerId = PROVIDERS[selectedIndex]?.id ?? "claude";
-      settings.set_string("provider", providerId);
-      updateVisibility();
+    // Ollama authentication group
+    const ollamaGroup = new Adw.PreferencesGroup({
+      title: _("Ollama"),
+      description: _(
+        "To get your session cookie: open ollama.com → F12 → Application → Cookies → copy the __Secure-session value.",
+      ),
     });
+    page.add(ollamaGroup);
 
-    updateVisibility();
+    const ollamaKeyRow = new Adw.PasswordEntryRow({
+      title: _("Session Cookie"),
+    });
+    ollamaKeyRow.set_text(settings.get_string("ollama-session-cookie"));
+    ollamaKeyRow.connect("changed", () => {
+      settings.set_string("ollama-session-cookie", ollamaKeyRow.get_text());
+    });
+    ollamaGroup.add(ollamaKeyRow);
 
     // Refresh settings group
     const refreshGroup = new Adw.PreferencesGroup({
