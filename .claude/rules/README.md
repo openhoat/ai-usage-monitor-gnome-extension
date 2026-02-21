@@ -13,6 +13,9 @@ This directory contains project rules for Claude Code.
 | `markdown_formatting.md` | Standard markdown formatting (no consecutive blank lines) |
 | `task_format.md` | Task format for KANBAN.md and CHANGELOG.md |
 | `subagents.md` | When and how to use Claude Code subagents |
+| `testing.md` | Testing conventions and practices |
+| `quality_check.md` | Code quality check rules |
+| `mcp_intellij.md` | MCP IntelliJ integration rules |
 
 ## Workflow
 
