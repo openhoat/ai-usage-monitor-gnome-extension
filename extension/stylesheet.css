@@ -1,0 +1,95 @@
+/* Panel indicator */
+.ai-usage-indicator {
+  padding: 0 4px;
+}
+
+.ai-usage-icon {
+  icon-size: 16px;
+  margin-right: 4px;
+}
+
+.ai-usage-label {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* Menu header */
+.ai-usage-header {
+  font-weight: bold;
+  font-size: 14px;
+  padding: 4px 12px;
+}
+
+/* Usage bar item */
+.ai-usage-bar-item {
+  padding: 4px 12px;
+}
+
+.ai-usage-bar-row {
+  spacing: 8px;
+}
+
+.ai-usage-bar-name {
+  min-width: 100px;
+  font-size: 12px;
+}
+
+.ai-usage-bar-percentage {
+  min-width: 40px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.ai-usage-bar-bg {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  height: 8px;
+  min-width: 120px;
+}
+
+.ai-usage-bar-fill {
+  border-radius: 4px;
+  height: 8px;
+}
+
+/* Color levels */
+.ai-usage-level-low {
+  background-color: #7c5cbf;
+}
+
+.ai-usage-level-medium {
+  background-color: #f39c12;
+}
+
+.ai-usage-level-high {
+  background-color: #e74c3c;
+}
+
+/* Panel label colors */
+.ai-usage-label-low {
+  color: #b8a0e0;
+}
+
+.ai-usage-label-medium {
+  color: #f39c12;
+}
+
+.ai-usage-label-high {
+  color: #e74c3c;
+}
+
+/* Reset info */
+.ai-usage-reset {
+  font-size: 12px;
+  color: #aaaaaa;
+  padding: 4px 12px;
+}
+
+/* Error / status messages */
+.ai-usage-status {
+  font-size: 12px;
+  font-style: italic;
+  color: #aaaaaa;
+  padding: 4px 12px;
+}
