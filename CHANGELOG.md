@@ -6,6 +6,14 @@ This file tracks modifications to the AI Usage Monitor GNOME extension project.
 
 ### 22/02
 
+**[10:35:00] ✨ [FEAT]** Add About submenu in extension menu showing version and project URL
+
+**[10:35:00] 🔧 [CHORE]** Update extension metadata description to include Gemini and Ollama providers
+
+**[10:30:00] ✨ [FEAT]** Add Gemini provider with session cookie authentication for Google AI Studio usage tracking
+
+**[10:30:00] ✅ [TEST]** Add unit tests for Gemini provider (13 tests)
+
 **[09:07:00] 🐛 [FIX]** Add error logging to OpenAI provider and require Admin API key for billing access
 
 **[14:30:00] 🔧 [CHORE]** Add Biome linter and formatter with project-specific configuration

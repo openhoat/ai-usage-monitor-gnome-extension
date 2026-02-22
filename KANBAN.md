@@ -21,3 +21,12 @@
 ## 🚧 In Progress
 
 ## ✅ Done
+
+- [x] **[22/02/2026 10:35:00] ✨ [FEAT]** Add About submenu with extension version in popup menu
+- [x] **[22/02/2026 10:35:00] 🔧 [CHORE]** Update metadata.json description to include Gemini
+- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Create Gemini provider with session cookie authentication
+- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Register Gemini provider in provider registry
+- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add GSettings key for Gemini session cookie
+- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add Gemini to extension label and credential mapping
+- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add Gemini settings group in preferences dialog
+- [x] **[22/02/2026 10:30:00] ✅ [TEST]** Add unit tests for Gemini provider
