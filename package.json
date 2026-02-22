@@ -6,14 +6,18 @@
   "scripts": {
     "build": "tsc",
     "dev": "npm run build && bash install.sh && dbus-run-session -- gnome-shell --wayland",
-    "start": "node dist/fetch-usage.js"
+    "start": "node dist/fetch-usage.js",
+    "qa": "biome check .",
+    "qa:fix": "biome check --write .",
+    "validate": "npm run qa && npm run build"
   },
   "dependencies": {
     "cheerio": "^1.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@biomejs/biome": "2.4.4",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
   },
   "volta": {
     "node": "24.13.0"
