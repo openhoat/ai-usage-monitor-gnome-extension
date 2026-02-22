@@ -77,6 +77,24 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
     })
     ollamaGroup.add(ollamaKeyRow)
 
+    // Gemini authentication group
+    const geminiGroup = new Adw.PreferencesGroup({
+      title: _('Gemini (Google AI Studio)'),
+      description: _(
+        'To get your session cookie: open aistudio.google.com → F12 → Application → Cookies → copy the __Secure-1PSID value.'
+      ),
+    })
+    page.add(geminiGroup)
+
+    const geminiKeyRow = new Adw.PasswordEntryRow({
+      title: _('Session Cookie'),
+    })
+    geminiKeyRow.set_text(settings.get_string('gemini-session-cookie'))
+    geminiKeyRow.connect('changed', () => {
+      settings.set_string('gemini-session-cookie', geminiKeyRow.get_text())
+    })
+    geminiGroup.add(geminiKeyRow)
+
     // Refresh settings group
     const refreshGroup = new Adw.PreferencesGroup({
       title: _('Refresh'),

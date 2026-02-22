@@ -13,12 +13,14 @@ const POLL_MIN_SECONDS = 60
 
 const PROVIDER_LABELS = {
   claude: 'Claude',
+  gemini: 'Gemini',
   ollama: 'Ollama',
   openai: 'OpenAI',
 }
 
 const PROVIDER_CREDENTIALS = {
   claude: 'session-cookie',
+  gemini: 'gemini-session-cookie',
   ollama: 'ollama-session-cookie',
   openai: 'openai-api-key',
 }
@@ -192,6 +194,40 @@ const AiUsageIndicator = GObject.registerClass(
         this._extensionObj.openPreferences()
       })
       this.menu.addMenuItem(settingsItem)
+
+      // About submenu
+      const aboutItem = new PopupMenu.PopupSubMenuMenuItem(_('About'))
+      const metadata = this._extensionObj.metadata
+      const version = metadata.version || '?'
+      const name = metadata.name || 'AI Usage Monitor'
+
+      const infoItem = new PopupMenu.PopupBaseMenuItem({
+        reactive: false,
+        can_focus: false,
+      })
+      infoItem.add_child(
+        new St.Label({
+          text: `${name} v${version}`,
+          style_class: 'ai-usage-status',
+        })
+      )
+      aboutItem.menu.addMenuItem(infoItem)
+
+      if (metadata.url) {
+        const urlItem = new PopupMenu.PopupBaseMenuItem({
+          reactive: false,
+          can_focus: false,
+        })
+        urlItem.add_child(
+          new St.Label({
+            text: metadata.url,
+            style_class: 'ai-usage-status',
+          })
+        )
+        aboutItem.menu.addMenuItem(urlItem)
+      }
+
+      this.menu.addMenuItem(aboutItem)
     }
 
     _getConfiguredProviders() {
