@@ -18,7 +18,6 @@
 
 ## 📝 Backlog
 
-- [ ] **#doc-readme [23/02/2026 15:30:00] 🔴 P1 🎨 [UX]** Revamp README: remove Architecture, API Response Format, Adding a New Provider, Acknowledgments, and Project Structure sections, then modernize style inspired by termaid/README.md
 - [x] **#doc-license [23/02/2026 15:35:00] 🔴 P1 ⚙️ [CONFIG]** Add MIT LICENSE.txt file
 - [ ] **#perf-timeout [23/02/2026 15:00:00] 🔴 P1 🚀 [PERFORMANCE]** Add request timeouts with AbortController in all providers to prevent extension freezes
 - [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
@@ -36,13 +35,17 @@
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
 - [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
 - [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
+
 ## 🚧 In Progress
 
-### [23/02/2026 08:56:02] 🟢 P3 🌍 [I18N] Add multi-language support: French and English (default: English)
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Fix missing _() wrapping on hard-coded strings in extension.js
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create gettext infrastructure: .pot template, po/ directory, LINGUAS file
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create French translation file (fr.po)
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Update build/install process to compile and install locale files
-- [ ] **[23/02/2026 08:56:02] ✅ [TEST]** Validate i18n setup (build, install, verify translations)
-
 ## ✅ Done
+
+- [x] **[23/02/2026 10:35:00] 📝 [DOCS]** Improve Troubleshooting section with clearer subsections
+- [x] **[23/02/2026 10:35:00] ♻️ [REFACTOR]** Simplify Installation section (merge Quick Install and Manual)
+- [x] **[23/02/2026 10:35:00] 🎨 [STYLE]** Modernize style: add hero badges, reorganize section order, improve formatting
+- [x] **[23/02/2026 10:35:00] ♻️ [REFACTOR]** Remove redundant sections (Architecture, API Response Format, Project Structure, Adding a New Provider, Acknowledgments)
+- [x] **[23/02/2026 10:25:00] ✅ [TEST]** Validate i18n setup (build, install, verify translations)
+- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Update build/install process to compile and install locale files
+- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create French translation file (fr.po)
+- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create gettext infrastructure: .pot template, po/ directory, LINGUAS file
+- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Fix missing _() wrapping on hard-coded strings in extension.js
