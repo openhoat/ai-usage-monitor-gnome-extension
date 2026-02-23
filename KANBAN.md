@@ -18,15 +18,17 @@
 
 ## 📝 Backlog
 
+- [ ] **#perf-timeout [23/02/2026 15:00:00] 🔴 P1 🚀 [PERFORMANCE]** Add request timeouts with AbortController in all providers to prevent extension freezes
+- [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
+- [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
+- [ ] **#ux-errors [23/02/2026 15:00:00] 🟡 P2 🎨 [UX]** Improve error messages in extension UI to distinguish between invalid credentials, network errors, and timeouts
+- [ ] **#perf-subprocess [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add timeout and cleanup for hung Node.js subprocesses in extension.js
+- [ ] **#perf-retry [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add retry logic with exponential backoff for failed provider requests
+- [ ] **#deps-cleanup [23/02/2026 15:00:00] 🟡 P2 📦 [DEPENDENCIES]** Remove unused @testing-library/react dependency
+- [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
+- [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
+- [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
+
 ## 🚧 In Progress
 
 ## ✅ Done
-
-- [x] **[22/02/2026 10:35:00] ✨ [FEAT]** Add About submenu with extension version in popup menu
-- [x] **[22/02/2026 10:35:00] 🔧 [CHORE]** Update metadata.json description to include Gemini
-- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Create Gemini provider with session cookie authentication
-- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Register Gemini provider in provider registry
-- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add GSettings key for Gemini session cookie
-- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add Gemini to extension label and credential mapping
-- [x] **[22/02/2026 10:30:00] ✨ [FEAT]** Add Gemini settings group in preferences dialog
-- [x] **[22/02/2026 10:30:00] ✅ [TEST]** Add unit tests for Gemini provider
