@@ -23,6 +23,12 @@
 - [ ] **#perf-timeout [23/02/2026 15:00:00] 🔴 P1 🚀 [PERFORMANCE]** Add request timeouts with AbortController in all providers to prevent extension freezes
 - [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
 - [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
+- [x] **#devops-husky [23/02/2026 17:00:00] 🔴 P1 🔧 [DEVOPS]** Add husky git hooks (pre-commit: validate, commit-msg: commitlint, pre-push: test)
+- [x] **#devops-commitlint [23/02/2026 17:00:00] 🔴 P1 🔧 [DEVOPS]** Add commitlint for Conventional Commits validation (types: feat, fix, docs, style, refactor, perf, test, chore, revert)
+- [ ] **#devops-wireit [23/02/2026 17:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add wireit for npm scripts caching and parallelization (build, test, validate)
+- [ ] **#devops-bump-version [23/02/2026 17:00:00] 🟡 P2 🔧 [DEVOPS]** Add bump-version script for automated version updates (package.json, README.md)
+- [ ] **#test-coverage [23/02/2026 17:00:00] 🟡 P2 ✅ [TEST]** Configure vitest coverage with 80% thresholds (lines, functions, branches, statements)
+- [ ] **#doc-badges [23/02/2026 17:00:00] 🟢 P3 🎨 [UX]** Add README badges (License, TypeScript, Node.js, Vitest, GitHub Stars/Forks/Issues)
 - [ ] **#ux-errors [23/02/2026 15:00:00] 🟡 P2 🎨 [UX]** Improve error messages in extension UI to distinguish between invalid credentials, network errors, and timeouts
 - [ ] **#perf-subprocess [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add timeout and cleanup for hung Node.js subprocesses in extension.js
 - [ ] **#perf-retry [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add retry logic with exponential backoff for failed provider requests
