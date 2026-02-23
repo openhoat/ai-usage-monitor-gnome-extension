@@ -23,6 +23,7 @@
 | Provider | Authentication | Usage Data |
 |----------|---------------|------------|
 | **Claude** (Anthropic) | Session cookie | Tier usage (Standard 5h, Extended 7d) |
+| **Ollama** | Session cookie | Usage percentage by model |
 | **OpenAI** | API key | Monthly costs by model |
 
 ## Features
@@ -81,6 +82,14 @@ gnome-extensions prefs ai-usage-monitor@openhoat.dev
 2. Create a new API key
 3. In the extension preferences, select **OpenAI (ChatGPT)** and paste the API key
 
+### Ollama Setup
+
+1. Open [ollama.com](https://ollama.com) and log in
+2. Open Developer Tools (`F12`)
+3. Go to **Application → Cookies → `https://ollama.com`**
+4. Copy the value of the session cookie
+5. In the extension preferences, select **Ollama** and paste the session cookie
+
 ### Refresh Interval
 
 By default, the extension refreshes usage data every 30 minutes. You can adjust this in the preferences (5-120 minutes).
@@ -123,6 +132,7 @@ npm run build
 
 ```bash
 node dist/fetch-usage.js claude <your-session-cookie>
+node dist/fetch-usage.js ollama <your-session-cookie>
 node dist/fetch-usage.js openai <your-api-key>
 ```
 
