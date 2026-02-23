@@ -7,8 +7,11 @@
     "build": "tsc",
     "dev": "npm run build && bash install.sh && dbus-run-session -- gnome-shell --wayland",
     "start": "node dist/fetch-usage.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "qa": "biome check .",
     "qa:fix": "biome check --write .",
+    "changelog": "node scripts/generate-changelog.js",
     "validate": "npm run qa && npm run build"
   },
   "dependencies": {
@@ -16,8 +19,12 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.4",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
     "@types/node": "^22.0.0",
-    "typescript": "^5.7.0"
+    "happy-dom": "20.7.0",
+    "typescript": "^5.7.0",
+    "vitest": "4.0.18"
   },
   "volta": {
     "node": "24.13.0"
