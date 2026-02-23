@@ -32,20 +32,8 @@
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
 - [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
 - [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
-
 ## 🚧 In Progress
 
 ## ✅ Done
 
-- [x] **[23/02/2026 10:35:00] 📝 [DOCS]** Improve Troubleshooting section with clearer subsections
-- [x] **[23/02/2026 10:35:00] ♻️ [REFACTOR]** Simplify Installation section (merge Quick Install and Manual)
-- [x] **[23/02/2026 10:35:00] 🎨 [STYLE]** Modernize style: add hero badges, reorganize section order, improve formatting
-- [x] **[23/02/2026 10:35:00] ♻️ [REFACTOR]** Remove redundant sections (Architecture, API Response Format, Project Structure, Adding a New Provider, Acknowledgments)
-- [x] **[23/02/2026 10:25:00] ✅ [TEST]** Validate i18n setup (build, install, verify translations)
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Update build/install process to compile and install locale files
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create French translation file (fr.po)
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create gettext infrastructure: .pot template, po/ directory, LINGUAS file
-- [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Fix missing _() wrapping on hard-coded strings in extension.js
-- [x] **[23/02/2026 17:00:00] 🔧 [DEVOPS]** Add commitlint for Conventional Commits validation
-- [x] **[23/02/2026 17:00:00] 🔧 [DEVOPS]** Add husky git hooks (pre-commit: validate, commit-msg: commitlint, pre-push: test)
-- [x] **[23/02/2026 15:35:00] ⚙️ [CONFIG]** Add MIT LICENSE.txt file
+- [x] **[23/02/2026 19:35:00] ✨ [FEAT]** Display last refresh time in extension widget menu (store timestamp on fetch, show "Last updated: HH:MM")

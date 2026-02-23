@@ -37,6 +37,9 @@ msgstr "Aucun fournisseur configuré. Ouvrez les paramètres."
 msgid "Resets in %s"
 msgstr "Réinitialisation dans %s"
 
+msgid "Last updated: %s"
+msgstr "Dernière mise à jour : %s"
+
 msgid "ERR"
 msgstr "ERR"
 

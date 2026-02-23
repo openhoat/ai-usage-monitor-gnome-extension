@@ -37,6 +37,13 @@ function formatResetTime(hours) {
   return `${h}h`
 }
 
+function formatLastRefreshTime(date) {
+  if (!date) return null
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
 const UsageBarItem = GObject.registerClass(
   class UsageBarItem extends PopupMenu.PopupBaseMenuItem {
     _init(name, percentage) {
@@ -103,6 +110,7 @@ const AiUsageIndicator = GObject.registerClass(
       this._pollSourceId = null
       this._subprocesses = []
       this._providerResults = {}
+      this._lastRefreshTime = null
 
       // Panel box
       const panelBox = new St.BoxLayout({
@@ -371,6 +379,9 @@ const AiUsageIndicator = GObject.registerClass(
         return
       }
 
+      // Store the refresh time
+      this._lastRefreshTime = new Date()
+
       // Collect all successful percentages for the panel label
       let maxPercentage = 0
       let hasSuccess = false
@@ -435,6 +446,22 @@ const AiUsageIndicator = GObject.registerClass(
       } else {
         this._label.set_text(_('ERR'))
         this._label.style_class = 'ai-usage-label ai-usage-label-high'
+      }
+
+      // Add last refresh time display
+      if (this._lastRefreshTime) {
+        const timeStr = formatLastRefreshTime(this._lastRefreshTime)
+        const lastRefreshItem = new PopupMenu.PopupBaseMenuItem({
+          reactive: false,
+          can_focus: false,
+        })
+        lastRefreshItem.add_child(
+          new St.Label({
+            text: _('Last updated: %s').replace('%s', timeStr),
+            style_class: 'ai-usage-last-refresh',
+          })
+        )
+        this._contentSection.addMenuItem(lastRefreshItem)
       }
     }
 

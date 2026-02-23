@@ -86,6 +86,14 @@
   padding: 4px 12px;
 }
 
+/* Last refresh time */
+.ai-usage-last-refresh {
+  font-size: 11px;
+  color: #888888;
+  padding: 4px 12px;
+  font-style: italic;
+}
+
 /* Error / status messages */
 .ai-usage-status {
   font-size: 12px;
