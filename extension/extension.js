@@ -97,7 +97,7 @@ const UsageBarItem = GObject.registerClass(
 const AiUsageIndicator = GObject.registerClass(
   class AiUsageIndicator extends PanelMenu.Button {
     _init(extensionObj) {
-      super._init(0.0, 'AI Usage Monitor')
+      super._init(0.0, _('AI Usage Monitor'))
       this._extensionObj = extensionObj
       this._settings = extensionObj.getSettings()
       this._pollSourceId = null
@@ -153,7 +153,7 @@ const AiUsageIndicator = GObject.registerClass(
         can_focus: false,
       })
       const headerLabel = new St.Label({
-        text: 'AI Usage Monitor',
+        text: _('AI Usage Monitor'),
         style_class: 'ai-usage-header',
       })
       headerItem.add_child(headerLabel)
@@ -197,7 +197,7 @@ const AiUsageIndicator = GObject.registerClass(
       const aboutItem = new PopupMenu.PopupSubMenuMenuItem(_('About'))
       const metadata = this._extensionObj.metadata
       const version = metadata.version || '?'
-      const name = metadata.name || 'AI Usage Monitor'
+      const name = metadata.name || _('AI Usage Monitor')
 
       const infoItem = new PopupMenu.PopupBaseMenuItem({
         reactive: false,
@@ -418,7 +418,7 @@ const AiUsageIndicator = GObject.registerClass(
           })
           resetItem.add_child(
             new St.Label({
-              text: `Resets in ${resetStr}`,
+              text: _('Resets in %s').replace('%s', resetStr),
               style_class: 'ai-usage-reset',
             })
           )
@@ -433,7 +433,7 @@ const AiUsageIndicator = GObject.registerClass(
         const level = getLevelClass(maxPercentage)
         this._label.style_class = `ai-usage-label ai-usage-label-${level}`
       } else {
-        this._label.set_text('ERR')
+        this._label.set_text(_('ERR'))
         this._label.style_class = 'ai-usage-label ai-usage-label-high'
       }
     }
@@ -480,6 +480,9 @@ const AiUsageIndicator = GObject.registerClass(
 
 export default class AiUsageExtension extends Extension {
   enable() {
+    // Initialize translations from extension's locale directory
+    // Note: gettext is auto-configured by Extension base class using uuid as domain
+    // this.initTranslations('ai-usage-monitor')
     this._indicator = new AiUsageIndicator(this)
     Main.panel.addToStatusArea(this.uuid, this._indicator)
   }

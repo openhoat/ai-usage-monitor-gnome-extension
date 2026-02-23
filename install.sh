@@ -35,6 +35,30 @@ mkdir -p "$EXTENSION_DIR/schemas"
 cp "$PROJECT_DIR/extension/schemas/"*.xml "$EXTENSION_DIR/schemas/"
 glib-compile-schemas "$EXTENSION_DIR/schemas/"
 
+# Compile and install translations
+echo ""
+echo "=== Installing translations ==="
+PO_DIR="$PROJECT_DIR/extension/po"
+if [ -d "$PO_DIR" ]; then
+  # Read languages from LINGUAS file
+  if [ -f "$PO_DIR/LINGUAS" ]; then
+    while IFS= read -r lang || [ -n "$lang" ]; do
+      # Skip empty lines and comments
+      [ -z "$lang" ] && continue
+      [[ "$lang" =~ ^# ]] && continue
+
+      PO_FILE="$PO_DIR/${lang}.po"
+      if [ -f "$PO_FILE" ]; then
+        LOCALE_DIR="$EXTENSION_DIR/locale/$lang/LC_MESSAGES"
+        mkdir -p "$LOCALE_DIR"
+        # Use extension UUID as domain name (GNOME Shell requirement)
+        msgfmt -o "$LOCALE_DIR/$EXTENSION_UUID.mo" "$PO_FILE"
+        echo "  Installed translation: $lang"
+      fi
+    done < "$PO_DIR/LINGUAS"
+  fi
+fi
+
 echo ""
 echo "=== Installation complete ==="
 echo ""
