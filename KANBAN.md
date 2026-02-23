@@ -18,12 +18,9 @@
 
 ## 📝 Backlog
 
-- [x] **#doc-license [23/02/2026 15:35:00] 🔴 P1 ⚙️ [CONFIG]** Add MIT LICENSE.txt file
 - [ ] **#perf-timeout [23/02/2026 15:00:00] 🔴 P1 🚀 [PERFORMANCE]** Add request timeouts with AbortController in all providers to prevent extension freezes
 - [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
 - [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
-- [x] **#devops-husky [23/02/2026 17:00:00] 🔴 P1 🔧 [DEVOPS]** Add husky git hooks (pre-commit: validate, commit-msg: commitlint, pre-push: test)
-- [x] **#devops-commitlint [23/02/2026 17:00:00] 🔴 P1 🔧 [DEVOPS]** Add commitlint for Conventional Commits validation (types: feat, fix, docs, style, refactor, perf, test, chore, revert)
 - [ ] **#devops-wireit [23/02/2026 17:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add wireit for npm scripts caching and parallelization (build, test, validate)
 - [ ] **#devops-bump-version [23/02/2026 17:00:00] 🟡 P2 🔧 [DEVOPS]** Add bump-version script for automated version updates (package.json, README.md)
 - [ ] **#test-coverage [23/02/2026 17:00:00] 🟡 P2 ✅ [TEST]** Configure vitest coverage with 80% thresholds (lines, functions, branches, statements)
@@ -49,3 +46,6 @@
 - [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create French translation file (fr.po)
 - [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Create gettext infrastructure: .pot template, po/ directory, LINGUAS file
 - [x] **[23/02/2026 08:56:02] ✨ [FEAT]** Fix missing _() wrapping on hard-coded strings in extension.js
+- [x] **[23/02/2026 17:00:00] 🔧 [DEVOPS]** Add commitlint for Conventional Commits validation
+- [x] **[23/02/2026 17:00:00] 🔧 [DEVOPS]** Add husky git hooks (pre-commit: validate, commit-msg: commitlint, pre-push: test)
+- [x] **[23/02/2026 15:35:00] ⚙️ [CONFIG]** Add MIT LICENSE.txt file
