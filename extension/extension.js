@@ -13,14 +13,12 @@ const POLL_MIN_SECONDS = 60
 
 const PROVIDER_LABELS = {
   claude: 'Claude',
-  gemini: 'Gemini',
   ollama: 'Ollama',
   openai: 'OpenAI',
 }
 
 const PROVIDER_CREDENTIALS = {
   claude: 'session-cookie',
-  gemini: 'gemini-session-cookie',
   ollama: 'ollama-session-cookie',
   openai: 'openai-api-key',
 }
