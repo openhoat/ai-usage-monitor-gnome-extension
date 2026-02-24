@@ -26,3 +26,9 @@
 ## 🚧 In Progress
 
 ## ✅ Done
+
+- [x] **#publish-metadata [24/02/2026 15:15:13] 🔴 P1 ⚙️ [CONFIG]** Verify and correct metadata.json for EGO submission
+- [x] **#publish-node-detection [24/02/2026 15:15:13] 🔴 P1 🏗️ [ARCHITECTURE]** Improve Node.js detection portability in extension.js
+- [x] **#publish-packaging [24/02/2026 15:15:13] 🔴 P1 🔧 [DEVOPS]** Create automated packaging script (ZIP) for EGO
+- [x] **#publish-validation [24/02/2026 15:15:13] 🟡 P2 ✅ [TEST]** Validate final package content and structure
+- [x] **#publish-screenshots [24/02/2026 15:36:00] 🟡 P2 🎨 [UX]** Create automated screenshot helper script

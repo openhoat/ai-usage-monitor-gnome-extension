@@ -2,7 +2,9 @@
 set -euo pipefail
 
 EXTENSION_UUID="ai-usage-monitor@openhoat.dev"
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Look for the project root from the script location
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 EXTENSION_DIR="$HOME/.local/share/gnome-shell/extensions/$EXTENSION_UUID"
 
 echo "=== Building TypeScript ==="
