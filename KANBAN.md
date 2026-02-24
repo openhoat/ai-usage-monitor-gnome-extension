@@ -31,16 +31,4 @@
 
 ## 🚧 In Progress
 
-
 ## ✅ Done
-
-- [x] **[24/02/2026 09:37:00] ✨ [FEAT]** Create `fetchWithRetry` utility with exponential backoff (3 retries, network errors and 5xx only)
-- [x] **[24/02/2026 09:37:00] ♻️ [REFACTOR]** Apply `fetchWithRetry` to all providers (Claude, OpenAI, Ollama)
-- [x] **[24/02/2026 09:37:00] ✅ [TEST]** Add unit tests for `fetchWithRetry` utility
-- [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for Claude provider (API endpoint flow, scraping fallback, error handling)
-- [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for OpenAI provider (costs API, subscription API, pagination, error handling)
-- [x] **[24/02/2026 09:25:00] 🔧 [CHORE]** Remove unused @testing-library/react dependency
-- [x] **[24/02/2026 09:21:09] ✨ [FEAT]** Create `fetchWithTimeout` utility function with AbortController and configurable timeout
-- [x] **[24/02/2026 09:21:09] ♻️ [REFACTOR]** Apply `fetchWithTimeout` to all providers (Claude, OpenAI, Ollama)
-- [x] **[24/02/2026 09:21:09] ✅ [TEST]** Add unit tests for `fetchWithTimeout` utility
-- [x] **[23/02/2026 19:35:00] ✨ [FEAT]** Display last refresh time in extension widget menu (store timestamp on fetch, show "Last updated: HH:MM")
