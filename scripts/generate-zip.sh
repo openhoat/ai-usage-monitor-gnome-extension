@@ -41,18 +41,11 @@ glib-compile-schemas "$BUILD_DIR/schemas/"
 echo "Copying compiled scripts..."
 cp -r dist/* "$BUILD_DIR/"
 
-# 6. Copy production node_modules
-echo "Copying production dependencies..."
-# We use a temporary directory to install only production dependencies
-TEMP_NODE_MODULES="temp_node_modules"
-rm -rf "$TEMP_NODE_MODULES"
-mkdir -p "$TEMP_NODE_MODULES"
-cp package.json package-lock.json "$TEMP_NODE_MODULES/"
-cd "$TEMP_NODE_MODULES"
-npm install --omit=dev
-cd ..
-cp -r "$TEMP_NODE_MODULES/node_modules" "$BUILD_DIR/"
-rm -rf "$TEMP_NODE_MODULES"
+# 6. (DEPRECATED) Copy production node_modules
+# echo "Copying production dependencies..."
+# Since we removed cheerio, we no longer need production node_modules in the ZIP.
+# GNOME Extensions usually run with GJS and don't bundle node_modules.
+# Our logic runs as a separate Node process, but it now uses only built-in modules.
 
 # 7. Compile translations
 echo "Compiling translations..."

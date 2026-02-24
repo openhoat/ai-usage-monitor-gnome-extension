@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import { getUserAgent } from '../config.js'
 import { fetchWithRetry } from '../helpers/fetch.js'
 import type { ErrorResult, Provider, Result, TierUsage, UsageResult } from '../types.js'
@@ -147,18 +146,19 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
     return null
   }
 
-  const $ = cheerio.load(html)
   const tiers: TierUsage[] = []
   let overallPercentage = 0
   let resetDate: string | null = null
   let resetInHours: number | null = null
   let plan = 'pro'
 
-  // Strategy 1: Parse __NEXT_DATA__
-  const nextDataScript = $('script#__NEXT_DATA__[type="application/json"]')
-  if (nextDataScript.length > 0) {
+  // Strategy 1: Parse __NEXT_DATA__ using regex
+  const nextDataMatch = html.match(
+    /<script[^>]*?id="__NEXT_DATA__"[^>]*?type="application\/json"[^>]*?>(.*?)<\/script>/s
+  )
+  if (nextDataMatch) {
     try {
-      const nextData = JSON.parse(nextDataScript.text())
+      const nextData = JSON.parse(nextDataMatch[1])
       const pageProps = nextData?.props?.pageProps
       if (pageProps) {
         const result = parseRawUsageData(pageProps as RawUsageData)
@@ -170,8 +170,9 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
   }
 
   // Strategy 2: Look for inline script data
-  $('script').each((_i, el) => {
-    const text = $(el).text()
+  const scriptMatches = html.matchAll(/<script[^>]*?>(.*?)<\/script>/gs)
+  for (const scriptMatch of scriptMatches) {
+    const text = scriptMatch[1]
     const jsonPatterns = [
       /self\.__next_f\.push\(\[.*?"(.+?)"\]/g,
       /\{[^}]*"tiers"\s*:\s*\[/g,
@@ -197,7 +198,7 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
         }
       }
     }
-  })
+  }
 
   // Strategy 3: Regex extraction from HTML text
   if (tiers.length === 0) {
@@ -223,32 +224,27 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
     }
   }
 
-  // Look for progress bar aria values
-  $('[role="progressbar"]').each((_i, el) => {
-    const value = $(el).attr('aria-valuenow')
-    const label = $(el).attr('aria-label') || $(el).prev().text() || `Tier ${tiers.length + 1}`
-    if (value) {
-      const pct = parseFloat(value)
-      if (!Number.isNaN(pct)) {
-        tiers.push({ name: label.trim(), percentage: pct })
+  // Look for progress bar aria values using regex
+  const ariaMatches = html.matchAll(
+    /role="progressbar"[^>]*?aria-valuenow="(\d+(?:\.\d+)?)"[^>]*?aria-label="([^"]+)"/gi
+  )
+  for (const match of ariaMatches) {
+    const pct = parseFloat(match[1])
+    const label = match[2].trim()
+    if (!Number.isNaN(pct)) {
+      tiers.push({ name: label, percentage: pct })
+    }
+  }
+
+  // Look for width-based progress bars using regex
+  if (tiers.length === 0) {
+    const widthMatches = html.matchAll(/style="[^"]*?width:\s*(\d+(?:\.\d+)?)%[^"]*?"/gi)
+    for (const match of widthMatches) {
+      const pct = parseFloat(match[1])
+      if (pct > 0 && pct <= 100) {
+        tiers.push({ name: `Tier ${tiers.length + 1}`, percentage: pct })
       }
     }
-  })
-
-  // Look for width-based progress bars
-  if (tiers.length === 0) {
-    $("[style*='width']").each((_i, el) => {
-      const style = $(el).attr('style') || ''
-      const widthMatch = style.match(/width:\s*(\d+(?:\.\d+)?)%/)
-      if (widthMatch) {
-        const pct = parseFloat(widthMatch[1])
-        if (pct > 0 && pct <= 100) {
-          const parent = $(el).parent()
-          const label = parent.prev().text().trim() || `Tier ${tiers.length + 1}`
-          tiers.push({ name: label, percentage: pct })
-        }
-      }
-    })
   }
 
   // Extract reset info

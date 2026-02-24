@@ -77,9 +77,7 @@
       ]
     }
   },
-  "dependencies": {
-    "cheerio": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "2.4.4",
     "@commitlint/cli": "20.4.2",
