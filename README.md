@@ -9,6 +9,20 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/blob/main/LICENSE.txt"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript&logoColor=white" alt="TypeScript 5.7">
+  <img src="https://img.shields.io/badge/Node.js-≥22-green?logo=node.js&logoColor=white" alt="Node.js ≥22">
+  <img src="https://img.shields.io/badge/Vitest-4.0-yellow?logo=vitest&logoColor=white" alt="Vitest 4.0">
+  <img src="https://img.shields.io/badge/GNOME_Shell-47-purple?logo=gnome&logoColor=white" alt="GNOME Shell 47">
+</p>
+
+<p align="center">
+  <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/stargazers"><img src="https://img.shields.io/github/stars/openhoat/ai-usage-monitor-gnome-extension?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/network/members"><img src="https://img.shields.io/github/forks/openhoat/ai-usage-monitor-gnome-extension?style=social" alt="GitHub Forks"></a>
+  <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/issues"><img src="https://img.shields.io/github/issues/openhoat/ai-usage-monitor-gnome-extension" alt="GitHub Issues"></a>
+</p>
+
+<p align="center">
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#configuration">Configuration</a> •
