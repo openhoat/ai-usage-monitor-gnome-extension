@@ -10,6 +10,8 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js'
 
 const POLL_MIN_SECONDS = 60
+const SUBPROCESS_TIMEOUT_SECONDS = 60
+const MAX_CONCURRENT_SUBPROCESSES = 5
 
 const PROVIDER_LABELS = {
   claude: 'Claude',
@@ -323,6 +325,16 @@ const AiUsageIndicator = GObject.registerClass(
         return
       }
 
+      // Limit concurrent subprocesses
+      if (this._subprocesses.length >= MAX_CONCURRENT_SUBPROCESSES) {
+        this._onProviderResult(provider, {
+          status: 'error',
+          error_code: 'subprocess_error',
+          message: 'Too many concurrent processes',
+        })
+        return
+      }
+
       try {
         const proc = Gio.Subprocess.new(
           [nodePath, scriptPath, provider, credential],
@@ -330,10 +342,38 @@ const AiUsageIndicator = GObject.registerClass(
         )
         this._subprocesses.push(proc)
 
+        // Add timeout to kill hung subprocesses
+        let timedOut = false
+        const timeoutId = GLib.timeout_add_seconds(
+          GLib.PRIORITY_DEFAULT,
+          SUBPROCESS_TIMEOUT_SECONDS,
+          () => {
+            timedOut = true
+            try {
+              proc.force_exit()
+            } catch {
+              // Process may have already exited
+            }
+            return GLib.SOURCE_REMOVE
+          }
+        )
+
         proc.communicate_utf8_async(null, null, (source, res) => {
+          // Clear timeout since process completed
+          GLib.source_remove(timeoutId)
+
           try {
             const [, stdout, stderr] = source.communicate_utf8_finish(res)
             this._subprocesses = this._subprocesses.filter(p => p !== source)
+
+            if (timedOut) {
+              this._onProviderResult(provider, {
+                status: 'error',
+                error_code: 'timeout',
+                message: `Process timed out after ${SUBPROCESS_TIMEOUT_SECONDS}s`,
+              })
+              return
+            }
 
             if (stdout?.trim()) {
               try {
