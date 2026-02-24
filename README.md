@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/actions/workflows/ci.yml"><img src="https://github.com/openhoat/ai-usage-monitor-gnome-extension/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/blob/main/LICENSE.txt"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript&logoColor=white" alt="TypeScript 5.7">
   <img src="https://img.shields.io/badge/Node.js-≥22-green?logo=node.js&logoColor=white" alt="Node.js ≥22">
