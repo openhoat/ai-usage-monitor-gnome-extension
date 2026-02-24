@@ -4,10 +4,7 @@ import Gio from 'gi://Gio'
 import GLib from 'gi://GLib'
 import Gtk from 'gi://Gtk'
 
-import {
-  gettext as _,
-  ExtensionPreferences,
-} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'
+import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'
 
 const SUBPROCESS_TIMEOUT_SECONDS = 30
 
@@ -15,28 +12,26 @@ const PROVIDER_CONFIG = {
   claude: {
     settingKey: 'session-cookie',
     label: 'Claude (Anthropic)',
-    description: _(
-      'To get your session cookie: open claude.ai → F12 → Application tab → Cookies → copy the sessionKey value.'
-    ),
+    description:
+      'To get your session cookie: open claude.ai → F12 → Application tab → Cookies → copy the sessionKey value.',
   },
   openai: {
     settingKey: 'openai-api-key',
     label: 'OpenAI (ChatGPT)',
-    description: _(
-      'Requires an Admin API key (not a regular key). Go to platform.openai.com → Settings → Organization → API keys → Create admin key.'
-    ),
+    description:
+      'Requires an Admin API key (not a regular key). Go to platform.openai.com → Settings → Organization → API keys → Create admin key.',
   },
   ollama: {
     settingKey: 'ollama-session-cookie',
     label: 'Ollama',
-    description: _(
-      'To get your session cookie: open ollama.com → F12 → Application → Cookies → copy the __Secure-session value.'
-    ),
+    description:
+      'To get your session cookie: open ollama.com → F12 → Application → Cookies → copy the __Secure-session value.',
   },
 }
 
 export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   fillPreferencesWindow(window) {
+    const _ = this.gettext.bind(this)
     const settings = this.getSettings()
 
     // Register custom icon theme path
@@ -80,6 +75,7 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   }
 
   _createProviderGroup(settings, providerId, config) {
+    const _ = this.gettext.bind(this)
     const group = new Adw.PreferencesGroup({
       title: _(config.label),
       description: _(config.description),
@@ -141,6 +137,7 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   }
 
   _showStatus(icon, type, text) {
+    const _ = this.gettext.bind(this)
     icon.visible = true
 
     switch (type) {
@@ -168,6 +165,7 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
   }
 
   _testCredential(providerId, credential, callback) {
+    const _ = this.gettext.bind(this)
     const scriptPath = GLib.build_filenamev([this.path, 'fetch-usage.js'])
 
     if (!GLib.file_test(scriptPath, GLib.FileTest.EXISTS)) {
@@ -176,21 +174,31 @@ export default class AiUsageMonitorPreferences extends ExtensionPreferences {
     }
 
     // Find node binary
-    let nodePath = null
-    const nodeCandidates = [
-      GLib.build_filenamev([GLib.get_home_dir(), '.volta', 'bin', 'node']),
-      '/usr/bin/node',
-      '/usr/local/bin/node',
-    ]
-    for (const candidate of nodeCandidates) {
-      if (GLib.file_test(candidate, GLib.FileTest.EXISTS)) {
-        nodePath = candidate
-        break
+    let nodePath = GLib.find_program_in_path('node')
+
+    // Fallback to common locations if not in PATH
+    if (!nodePath) {
+      const nodeCandidates = [
+        GLib.build_filenamev([GLib.get_home_dir(), '.volta', 'bin', 'node']),
+        GLib.build_filenamev([GLib.get_home_dir(), '.nvm', 'versions', 'node', '*', 'bin', 'node']),
+        '/usr/bin/node',
+        '/usr/local/bin/node',
+        '/usr/bin/nodejs',
+      ]
+      for (const candidate of nodeCandidates) {
+        if (candidate.includes('*')) continue
+        if (GLib.file_test(candidate, GLib.FileTest.EXISTS)) {
+          nodePath = candidate
+          break
+        }
       }
     }
 
     if (!nodePath) {
-      callback({ success: false, message: _('Node.js not found') })
+      callback({
+        success: false,
+        message: _('Node.js not found in PATH or common locations'),
+      })
       return
     }
 

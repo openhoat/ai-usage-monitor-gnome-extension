@@ -9,6 +9,11 @@
 </p>
 
 <p align="center">
+  <img src="screenshots/extension-menu.jpg" alt="Extension Menu" width="400">
+  <img src="screenshots/preferences-window.png" alt="Preferences Window" width="400">
+</p>
+
+<p align="center">
   <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/actions/workflows/ci.yml"><img src="https://github.com/openhoat/ai-usage-monitor-gnome-extension/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/openhoat/ai-usage-monitor-gnome-extension/blob/main/LICENSE.txt"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript&logoColor=white" alt="TypeScript 5.7">
@@ -62,9 +67,9 @@
 ### Quick Install
 
 ```bash
-git clone https://github.com/openhoat/ai-usage-monitor.git
-cd ai-usage-monitor
-./install.sh
+git clone https://github.com/openhoat/ai-usage-monitor-gnome-extension.git
+cd ai-usage-monitor-gnome-extension
+bash scripts/install.sh
 ```
 
 After installation, log out and log back in (Wayland) or restart GNOME Shell (X11: `Alt+F2` → `r`).

@@ -4,7 +4,7 @@ import GLib from 'gi://GLib'
 import GObject from 'gi://GObject'
 import St from 'gi://St'
 
-import { gettext as _, Extension } from 'resource:///org/gnome/shell/extensions/extension.js'
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js'
 import * as Main from 'resource:///org/gnome/shell/ui/main.js'
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js'
@@ -130,7 +130,7 @@ const UsageBarItem = GObject.registerClass(
 const AiUsageIndicator = GObject.registerClass(
   class AiUsageIndicator extends PanelMenu.Button {
     _init(extensionObj) {
-      super._init(0.0, _('AI Usage Monitor'))
+      super._init(0.0, extensionObj.gettext('AI Usage Monitor'))
       this._extensionObj = extensionObj
       this._settings = extensionObj.getSettings()
       this._pollSourceId = null
@@ -181,6 +181,7 @@ const AiUsageIndicator = GObject.registerClass(
     }
 
     _buildMenu() {
+      const _ = this._extensionObj.gettext.bind(this._extensionObj)
       // Header
       const headerItem = new PopupMenu.PopupBaseMenuItem({
         reactive: false,
@@ -303,16 +304,35 @@ const AiUsageIndicator = GObject.registerClass(
       }
 
       // Find node binary
-      let nodePath = null
-      const nodeCandidates = [
-        GLib.build_filenamev([GLib.get_home_dir(), '.volta', 'bin', 'node']),
-        '/usr/bin/node',
-        '/usr/local/bin/node',
-      ]
-      for (const candidate of nodeCandidates) {
-        if (GLib.file_test(candidate, GLib.FileTest.EXISTS)) {
-          nodePath = candidate
-          break
+      let nodePath = GLib.find_program_in_path('node')
+
+      // Fallback to common locations if not in PATH
+      if (!nodePath) {
+        const nodeCandidates = [
+          GLib.build_filenamev([GLib.get_home_dir(), '.volta', 'bin', 'node']),
+          GLib.build_filenamev([
+            GLib.get_home_dir(),
+            '.nvm',
+            'versions',
+            'node',
+            '*',
+            'bin',
+            'node',
+          ]),
+          '/usr/bin/node',
+          '/usr/local/bin/node',
+          '/usr/bin/nodejs',
+        ]
+        for (const candidate of nodeCandidates) {
+          // Candidates with glob patterns need expansion
+          if (candidate.includes('*')) {
+            // Simple expansion is complex in GJS, so we mostly rely on find_program_in_path
+            continue
+          }
+          if (GLib.file_test(candidate, GLib.FileTest.EXISTS)) {
+            nodePath = candidate
+            break
+          }
         }
       }
 
@@ -320,7 +340,7 @@ const AiUsageIndicator = GObject.registerClass(
         this._onProviderResult(provider, {
           status: 'error',
           error_code: 'node_missing',
-          message: 'Node.js not found',
+          message: 'Node.js not found in PATH or common locations',
         })
         return
       }
@@ -421,6 +441,7 @@ const AiUsageIndicator = GObject.registerClass(
     }
 
     _onAllResults(results) {
+      const _ = this._extensionObj.gettext.bind(this._extensionObj)
       this._contentSection.removeAll()
 
       const providers = Object.keys(results)

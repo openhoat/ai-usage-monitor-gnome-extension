@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "wireit",
-    "dev": "npm run build && bash install.sh && dbus-run-session -- gnome-shell --wayland",
+    "dev": "npm run build && bash scripts/install.sh && dbus-run-session -- gnome-shell --wayland",
     "start": "node dist/fetch-usage.js",
     "test": "wireit",
     "test:watch": "vitest",
@@ -38,7 +38,8 @@
     "changelog": "node scripts/generate-changelog.js",
     "bump": "node scripts/bump-version.js",
     "validate": "wireit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pack": "bash scripts/generate-zip.sh"
   },
   "wireit": {
     "build": {
