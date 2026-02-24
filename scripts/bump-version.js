@@ -149,7 +149,9 @@ function main() {
     // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('  1. Review the changes')
     // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
-    console.log(`  2. Commit: git add -A && git commit -m "chore: bump version to ${newVersionStr}"`)
+    console.log(
+      `  2. Commit: git add -A && git commit -m "chore: bump version to ${newVersionStr}"`
+    )
     // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log(`  3. Tag: git tag v${newVersionStr}`)
   } catch (error) {
