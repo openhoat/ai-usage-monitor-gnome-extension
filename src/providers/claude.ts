@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio'
 import { fetchWithRetry } from '../helpers/fetch.js'
-import type { Provider, TierUsage, UsageResult } from '../types.js'
+import type { ErrorResult, Provider, Result, TierUsage, UsageResult } from '../types.js'
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
 
@@ -299,13 +299,26 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
 
 export const claudeProvider: Provider = {
   name: 'claude',
-  async fetchUsage(credential: string): Promise<UsageResult | null> {
-    const apiResult = await tryApiEndpoints(credential)
-    if (apiResult) return apiResult
+  async fetchUsage(credential: string): Promise<Result> {
+    try {
+      const apiResult = await tryApiEndpoints(credential)
+      if (apiResult) return apiResult
 
-    const scrapeResult = await scrapeUsagePage(credential)
-    if (scrapeResult) return scrapeResult
+      const scrapeResult = await scrapeUsagePage(credential)
+      if (scrapeResult) return scrapeResult
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return { status: 'error', error_code: 'timeout', message: `Request timed out: ${message}` }
+      }
+      return { status: 'error', error_code: 'network_error', message: `Network error: ${message}` }
+    }
 
-    return null
+    const error: ErrorResult = {
+      status: 'error',
+      error_code: 'auth_expired',
+      message: 'Could not retrieve usage data. Session key may be expired or invalid.',
+    }
+    return error
   },
 }

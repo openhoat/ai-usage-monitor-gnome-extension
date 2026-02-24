@@ -26,27 +26,9 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  try {
-    const usageResult = await providerImpl.fetchUsage(credential)
-    if (usageResult) {
-      console.log(JSON.stringify(usageResult))
-      return
-    }
-
-    const result: ErrorResult = {
-      status: 'error',
-      error_code: 'auth_expired',
-      message: 'Could not retrieve usage data. The credential may be expired or invalid.',
-    }
-    console.log(JSON.stringify(result))
-    process.exit(1)
-  } catch (err) {
-    const result: ErrorResult = {
-      status: 'error',
-      error_code: 'fetch_error',
-      message: `Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
-    }
-    console.log(JSON.stringify(result))
+  const result = await providerImpl.fetchUsage(credential)
+  console.log(JSON.stringify(result))
+  if (result.status === 'error') {
     process.exit(1)
   }
 }

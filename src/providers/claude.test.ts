@@ -88,17 +88,20 @@ describe('claudeProvider', () => {
       expect(usageUrl).toContain('org-basic')
     })
 
-    test('should return null when organizations returns empty array', async () => {
+    test('should return error when organizations returns empty array', async () => {
       mockFetch
         .mockResolvedValueOnce(jsonResponse([]))
         .mockResolvedValueOnce(htmlResponse('<html><body>login</body></html>'))
 
       const result = await claudeProvider.fetchUsage('test-cookie')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
 
-    test('should return null when usage data has no buckets', async () => {
+    test('should return error when usage data has no buckets', async () => {
       mockFetch
         .mockResolvedValueOnce(jsonResponse(sampleOrgs))
         .mockResolvedValueOnce(jsonResponse({}))
@@ -106,7 +109,10 @@ describe('claudeProvider', () => {
 
       const result = await claudeProvider.fetchUsage('test-cookie')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
   })
 
@@ -178,36 +184,45 @@ describe('claudeProvider', () => {
       expect(result?.overall_percentage).toBe(50)
     })
 
-    test('should return null when scraping returns 401', async () => {
+    test('should return error when scraping returns 401', async () => {
       mockFetch
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce(htmlResponse('Unauthorized', 401))
 
       const result = await claudeProvider.fetchUsage('test-cookie')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
 
-    test('should return null when scraped page contains login redirect', async () => {
+    test('should return error when scraped page contains login redirect', async () => {
       mockFetch
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce(htmlResponse('<html><a href="/login">Login</a></html>'))
 
       const result = await claudeProvider.fetchUsage('test-cookie')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
   })
 
   describe('complete failure', () => {
-    test('should return null when both API and scraping fail', async () => {
+    test('should return error when both API and scraping fail', async () => {
       mockFetch
         .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('Network error'))
 
       const result = await claudeProvider.fetchUsage('test-cookie')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
   })
 

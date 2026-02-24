@@ -23,5 +23,5 @@ export type Result = UsageResult | ErrorResult
 
 export interface Provider {
   name: string
-  fetchUsage(credential: string): Promise<UsageResult | null>
+  fetchUsage(credential: string): Promise<Result>
 }

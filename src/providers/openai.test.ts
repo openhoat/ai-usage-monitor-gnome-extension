@@ -146,20 +146,26 @@ describe('openaiProvider', () => {
   })
 
   describe('error handling', () => {
-    test('should return null when costs API returns error', async () => {
+    test('should return error when costs API returns error', async () => {
       mockFetch.mockResolvedValueOnce(errorResponse(401, 'Unauthorized'))
 
       const result = await openaiProvider.fetchUsage('sk-bad-key')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
 
-    test('should return null when costs API fetch throws', async () => {
+    test('should return error when costs API fetch throws', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       const result = await openaiProvider.fetchUsage('sk-test-key')
 
-      expect(result).toBeNull()
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('auth_expired')
+      }
     })
 
     test('should still return usage when subscription API fails', async () => {

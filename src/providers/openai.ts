@@ -1,5 +1,5 @@
 import { fetchWithRetry } from '../helpers/fetch.js'
-import type { Provider, TierUsage, UsageResult } from '../types.js'
+import type { Provider, Result, TierUsage } from '../types.js'
 
 function logError(message: string): void {
   process.stderr.write(`${message}\n`)
@@ -101,62 +101,76 @@ async function fetchBudgetLimit(apiKey: string): Promise<number | null> {
 
 export const openaiProvider: Provider = {
   name: 'openai',
-  async fetchUsage(apiKey: string): Promise<UsageResult | null> {
-    const costsByModel = await fetchMonthlyCosts(apiKey)
-    if (!costsByModel) return null
+  async fetchUsage(apiKey: string): Promise<Result> {
+    try {
+      const costsByModel = await fetchMonthlyCosts(apiKey)
+      if (!costsByModel) {
+        return {
+          status: 'error',
+          error_code: 'auth_expired',
+          message: 'Could not retrieve cost data. API key may be invalid.',
+        }
+      }
 
-    const totalCents = Array.from(costsByModel.values()).reduce((sum, v) => sum + v, 0)
-    const totalDollars = totalCents / 100
+      const totalCents = Array.from(costsByModel.values()).reduce((sum, v) => sum + v, 0)
+      const totalDollars = totalCents / 100
 
-    const budgetLimit = await fetchBudgetLimit(apiKey)
+      const budgetLimit = await fetchBudgetLimit(apiKey)
 
-    const tiers: TierUsage[] = []
+      const tiers: TierUsage[] = []
 
-    if (budgetLimit && budgetLimit > 0) {
-      // Show overall usage as percentage of budget
-      tiers.push({
-        name: `Monthly ($${totalDollars.toFixed(2)}/$${budgetLimit.toFixed(0)})`,
-        percentage: Math.round((totalDollars / budgetLimit) * 10000) / 100,
-      })
-    } else {
-      // No budget limit — show spend info as-is
-      tiers.push({
-        name: `Monthly Spend`,
-        percentage: 0,
-      })
-    }
+      if (budgetLimit && budgetLimit > 0) {
+        // Show overall usage as percentage of budget
+        tiers.push({
+          name: `Monthly ($${totalDollars.toFixed(2)}/$${budgetLimit.toFixed(0)})`,
+          percentage: Math.round((totalDollars / budgetLimit) * 10000) / 100,
+        })
+      } else {
+        // No budget limit — show spend info as-is
+        tiers.push({
+          name: `Monthly Spend`,
+          percentage: 0,
+        })
+      }
 
-    // Add per-model breakdown (top models only)
-    const sorted = Array.from(costsByModel.entries())
-      .filter(([, v]) => v > 0)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
+      // Add per-model breakdown (top models only)
+      const sorted = Array.from(costsByModel.entries())
+        .filter(([, v]) => v > 0)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
 
-    for (const [model, cents] of sorted) {
-      const modelDollars = cents / 100
-      const modelPct = totalCents > 0 ? Math.round((cents / totalCents) * 10000) / 100 : 0
-      tiers.push({
-        name: `${model} ($${modelDollars.toFixed(2)})`,
-        percentage: modelPct,
-      })
-    }
+      for (const [model, cents] of sorted) {
+        const modelDollars = cents / 100
+        const modelPct = totalCents > 0 ? Math.round((cents / totalCents) * 10000) / 100 : 0
+        tiers.push({
+          name: `${model} ($${modelDollars.toFixed(2)})`,
+          percentage: modelPct,
+        })
+      }
 
-    const overallPercentage =
-      budgetLimit && budgetLimit > 0 ? Math.round((totalDollars / budgetLimit) * 10000) / 100 : 0
+      const overallPercentage =
+        budgetLimit && budgetLimit > 0 ? Math.round((totalDollars / budgetLimit) * 10000) / 100 : 0
 
-    // Reset at end of month
-    const { endTime } = getMonthBounds()
-    const resetDate = new Date(endTime * 1000).toISOString()
-    const resetInHours = Math.max(0, Math.round((endTime * 1000 - Date.now()) / 3600000))
+      // Reset at end of month
+      const { endTime } = getMonthBounds()
+      const resetDate = new Date(endTime * 1000).toISOString()
+      const resetInHours = Math.max(0, Math.round((endTime * 1000 - Date.now()) / 3600000))
 
-    return {
-      status: 'ok',
-      provider: 'openai',
-      plan: budgetLimit ? 'api' : 'api',
-      tiers,
-      overall_percentage: overallPercentage,
-      reset_date: resetDate,
-      reset_in_hours: resetInHours,
+      return {
+        status: 'ok',
+        provider: 'openai',
+        plan: 'api',
+        tiers,
+        overall_percentage: overallPercentage,
+        reset_date: resetDate,
+        reset_in_hours: resetInHours,
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return { status: 'error', error_code: 'timeout', message: `Request timed out: ${message}` }
+      }
+      return { status: 'error', error_code: 'network_error', message: `Network error: ${message}` }
     }
   },
 }

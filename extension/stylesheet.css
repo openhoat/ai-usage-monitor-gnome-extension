@@ -94,7 +94,23 @@
   font-style: italic;
 }
 
-/* Error / status messages */
+/* Error display */
+.ai-usage-error-row {
+  spacing: 6px;
+  padding: 4px 12px;
+}
+
+.ai-usage-error-icon {
+  color: #e74c3c;
+}
+
+.ai-usage-error-label {
+  font-size: 12px;
+  font-style: italic;
+  color: #e74c3c;
+}
+
+/* Status messages */
 .ai-usage-status {
   font-size: 12px;
   font-style: italic;

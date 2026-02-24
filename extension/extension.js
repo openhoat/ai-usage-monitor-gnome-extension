@@ -23,6 +23,30 @@ const PROVIDER_CREDENTIALS = {
   openai: 'openai-api-key',
 }
 
+const ERROR_ICONS = {
+  auth_expired: 'dialog-password-symbolic',
+  timeout: 'alarm-symbolic',
+  network_error: 'network-error-symbolic',
+  script_missing: 'dialog-warning-symbolic',
+  node_missing: 'dialog-warning-symbolic',
+  parse_error: 'dialog-error-symbolic',
+  no_output: 'dialog-error-symbolic',
+  subprocess_error: 'dialog-error-symbolic',
+  spawn_error: 'dialog-error-symbolic',
+}
+
+const ERROR_MESSAGES = {
+  auth_expired: 'Credential expired or invalid',
+  timeout: 'Request timed out',
+  network_error: 'Network error',
+  script_missing: 'Script not found',
+  node_missing: 'Node.js not found',
+  parse_error: 'Invalid response',
+  no_output: 'No data received',
+  subprocess_error: 'Process error',
+  spawn_error: 'Could not start process',
+}
+
 function getLevelClass(percentage) {
   if (percentage > 80) return 'high'
   if (percentage >= 50) return 'medium'
@@ -398,12 +422,27 @@ const AiUsageIndicator = GObject.registerClass(
             reactive: false,
             can_focus: false,
           })
-          errorItem.add_child(
-            new St.Label({
-              text: data.message || 'Unknown error',
-              style_class: 'ai-usage-status',
+          const errorBox = new St.BoxLayout({
+            style_class: 'ai-usage-error-row',
+            vertical: false,
+          })
+          const iconName = ERROR_ICONS[data.error_code] || 'dialog-error-symbolic'
+          errorBox.add_child(
+            new St.Icon({
+              icon_name: iconName,
+              style_class: 'ai-usage-error-icon',
+              icon_size: 16,
             })
           )
+          const friendlyMessage = ERROR_MESSAGES[data.error_code] || data.message || 'Unknown error'
+          errorBox.add_child(
+            new St.Label({
+              text: friendlyMessage,
+              style_class: 'ai-usage-error-label',
+              y_align: Clutter.ActorAlign.CENTER,
+            })
+          )
+          errorItem.add_child(errorBox)
           this._contentSection.addMenuItem(errorItem)
           continue
         }

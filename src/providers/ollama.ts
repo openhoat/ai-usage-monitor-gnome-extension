@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio'
 import { fetchWithRetry } from '../helpers/fetch.js'
-import type { Provider, TierUsage, UsageResult } from '../types.js'
+import type { Provider, Result, TierUsage, UsageResult } from '../types.js'
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
 
@@ -136,7 +136,21 @@ async function scrapeSettingsPage(sessionCookie: string): Promise<UsageResult | 
 
 export const ollamaProvider: Provider = {
   name: 'ollama',
-  async fetchUsage(sessionCookie: string): Promise<UsageResult | null> {
-    return scrapeSettingsPage(sessionCookie)
+  async fetchUsage(sessionCookie: string): Promise<Result> {
+    try {
+      const result = await scrapeSettingsPage(sessionCookie)
+      if (result) return result
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return { status: 'error', error_code: 'timeout', message: `Request timed out: ${message}` }
+      }
+      return { status: 'error', error_code: 'network_error', message: `Network error: ${message}` }
+    }
+    return {
+      status: 'error',
+      error_code: 'auth_expired',
+      message: 'Could not retrieve usage data. Session cookie may be expired or invalid.',
+    }
   },
 }
