@@ -28,16 +28,52 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "wireit",
     "dev": "npm run build && bash install.sh && dbus-run-session -- gnome-shell --wayland",
     "start": "node dist/fetch-usage.js",
-    "test": "vitest run",
+    "test": "wireit",
     "test:watch": "vitest",
-    "qa": "biome check .",
+    "qa": "wireit",
     "qa:fix": "biome check --write .",
     "changelog": "node scripts/generate-changelog.js",
-    "validate": "npm run qa && npm run build",
+    "validate": "wireit",
     "prepare": "husky"
+  },
+  "wireit": {
+    "build": {
+      "command": "tsc",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json"
+      ],
+      "output": [
+        "dist/**/*"
+      ]
+    },
+    "qa": {
+      "command": "biome check .",
+      "files": [
+        "biome.json",
+        "src/**/*.ts",
+        "extension/**/*.js"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "vitest run",
+      "files": [
+        "src/**/*.ts",
+        "src/**/*.test.ts"
+      ],
+      "output": []
+    },
+    "validate": {
+      "dependencies": [
+        "qa",
+        "build",
+        "test"
+      ]
+    }
   },
   "dependencies": {
     "cheerio": "^1.0.0"
@@ -51,7 +87,8 @@
     "happy-dom": "20.7.0",
     "husky": "9.1.7",
     "typescript": "^5.7.0",
-    "vitest": "4.0.18"
+    "vitest": "4.0.18",
+    "wireit": "0.14.12"
   },
   "volta": {
     "node": "24.13.0"
