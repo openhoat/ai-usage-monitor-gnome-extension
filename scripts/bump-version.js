@@ -65,6 +65,7 @@ function updatePackageJson(newVersion) {
   pkg.version = newVersion
   writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(pkg, null, 2)}\n`, 'utf-8')
 
+  // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
   console.log(`✓ Updated package.json: ${oldVersion} → ${newVersion}`)
 }
 
@@ -84,6 +85,7 @@ function updateMetadataJson(newVersion) {
   metadata.version = newIntVersion
   writeFileSync(METADATA_JSON_PATH, `${JSON.stringify(metadata, null, 2)}\n`, 'utf-8')
 
+  // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
   console.log(`✓ Updated metadata.json: ${oldVersion} → ${newIntVersion}`)
 }
 
@@ -94,11 +96,17 @@ function main() {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('Usage: node scripts/bump-version.js <major|minor|patch>')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('Examples:')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('  node scripts/bump-version.js patch  # 1.0.0 → 1.0.1')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('  node scripts/bump-version.js minor  # 1.0.0 → 1.1.0')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('  node scripts/bump-version.js major  # 1.0.0 → 2.0.0')
     process.exit(1)
   }
@@ -120,20 +128,29 @@ function main() {
     const newVersion = bumpVersion(currentVersion, bumpType)
     const newVersionStr = formatVersion(newVersion)
 
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log(`Bumping version: ${pkg.version} → ${newVersionStr}`)
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('')
 
     // Update files
     updatePackageJson(newVersionStr)
     updateMetadataJson(newVersionStr)
 
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('✅ Version bump complete!')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('Next steps:')
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log('  1. Review the changes')
-    console.log('  2. Commit: git add -A && git commit -m "chore: bump version to ' + newVersionStr + '"')
-    console.log('  3. Tag: git tag v' + newVersionStr)
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
+    console.log(`  2. Commit: git add -A && git commit -m "chore: bump version to ${newVersionStr}"`)
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
+    console.log(`  3. Tag: git tag v${newVersionStr}`)
   } catch (error) {
     console.error(`Error: ${error.message}`)
     process.exit(1)
