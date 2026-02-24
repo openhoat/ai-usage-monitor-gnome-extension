@@ -114,6 +114,7 @@ function main() {
   const bumpType = args[0]
 
   if (!['major', 'minor', 'patch'].includes(bumpType)) {
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.error(`Error: Invalid bump type '${bumpType}'. Use 'major', 'minor', or 'patch'.`)
     process.exit(1)
   }
@@ -152,6 +153,7 @@ function main() {
     // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.log(`  3. Tag: git tag v${newVersionStr}`)
   } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: CLI script that needs to output to console
     console.error(`Error: ${error.message}`)
     process.exit(1)
   }
