@@ -27,7 +27,6 @@
 - [ ] **#ux-errors [23/02/2026 15:00:00] 🟡 P2 🎨 [UX]** Improve error messages in extension UI to distinguish between invalid credentials, network errors, and timeouts
 - [ ] **#perf-subprocess [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add timeout and cleanup for hung Node.js subprocesses in extension.js
 - [ ] **#perf-retry [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add retry logic with exponential backoff for failed provider requests
-- [ ] **#deps-cleanup [23/02/2026 15:00:00] 🟡 P2 📦 [DEPENDENCIES]** Remove unused @testing-library/react dependency
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
 - [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
 - [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
@@ -36,6 +35,7 @@
 
 ## ✅ Done
 
+- [x] **[24/02/2026 09:25:00] 🔧 [CHORE]** Remove unused @testing-library/react dependency
 - [x] **[24/02/2026 09:21:09] ✨ [FEAT]** Create `fetchWithTimeout` utility function with AbortController and configurable timeout
 - [x] **[24/02/2026 09:21:09] ♻️ [REFACTOR]** Apply `fetchWithTimeout` to all providers (Claude, OpenAI, Ollama)
 - [x] **[24/02/2026 09:21:09] ✅ [TEST]** Add unit tests for `fetchWithTimeout` utility
