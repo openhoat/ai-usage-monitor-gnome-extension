@@ -18,7 +18,6 @@
 
 ## 📝 Backlog
 
-- [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
 - [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
 - [ ] **#devops-wireit [23/02/2026 17:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add wireit for npm scripts caching and parallelization (build, test, validate)
 - [ ] **#devops-bump-version [23/02/2026 17:00:00] 🟡 P2 🔧 [DEVOPS]** Add bump-version script for automated version updates (package.json, README.md)
@@ -26,15 +25,21 @@
 - [ ] **#doc-badges [23/02/2026 17:00:00] 🟢 P3 🎨 [UX]** Add README badges (License, TypeScript, Node.js, Vitest, GitHub Stars/Forks/Issues)
 - [ ] **#ux-errors [23/02/2026 15:00:00] 🟡 P2 🎨 [UX]** Improve error messages in extension UI to distinguish between invalid credentials, network errors, and timeouts
 - [ ] **#perf-subprocess [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add timeout and cleanup for hung Node.js subprocesses in extension.js
-- [ ] **#perf-retry [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add retry logic with exponential backoff for failed provider requests
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
 - [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
 - [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
 
 ## 🚧 In Progress
 
+### [24/02/2026 09:28:37] 🟡 P2 🚀 [PERFORMANCE] Add retry logic with exponential backoff for failed provider requests
+- [ ] **[24/02/2026 09:28:37] ✨ [FEAT]** Create `fetchWithRetry` utility with exponential backoff (3 retries, network errors and 5xx only)
+- [ ] **[24/02/2026 09:28:37] ♻️ [REFACTOR]** Apply `fetchWithRetry` to all providers (Claude, OpenAI, Ollama)
+- [ ] **[24/02/2026 09:28:37] ✅ [TEST]** Add unit tests for `fetchWithRetry` utility
+
 ## ✅ Done
 
+- [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for Claude provider (API endpoint flow, scraping fallback, error handling)
+- [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for OpenAI provider (costs API, subscription API, pagination, error handling)
 - [x] **[24/02/2026 09:25:00] 🔧 [CHORE]** Remove unused @testing-library/react dependency
 - [x] **[24/02/2026 09:21:09] ✨ [FEAT]** Create `fetchWithTimeout` utility function with AbortController and configurable timeout
 - [x] **[24/02/2026 09:21:09] ♻️ [REFACTOR]** Apply `fetchWithTimeout` to all providers (Claude, OpenAI, Ollama)
