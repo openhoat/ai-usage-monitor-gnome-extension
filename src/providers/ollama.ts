@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import { getUserAgent } from '../config.js'
 import { fetchWithRetry } from '../helpers/fetch.js'
 import type { Provider, Result, TierUsage, UsageResult } from '../types.js'
@@ -17,7 +16,6 @@ function buildHeaders(sessionCookie: string): Record<string, string> {
 }
 
 export function parseOllamaPage(html: string): UsageResult | null {
-  const $ = cheerio.load(html)
   const tiers: TierUsage[] = []
   let overallPercentage = 0
   let plan = 'free'
@@ -25,19 +23,26 @@ export function parseOllamaPage(html: string): UsageResult | null {
   let resetInHours: number | null = null
 
   // Extract plan from badge
-  const planText = $('span.bg-neutral-100.text-neutral-600.capitalize').text().trim()
-  if (planText) {
-    plan = planText.toLowerCase()
+  const planMatch = html.match(
+    /<span[^>]*?class="[^"]*?bg-neutral-100[^"]*?text-neutral-600[^"]*?capitalize[^"]*?"[^>]*?>(.*?)<\/span>/i
+  )
+  if (planMatch) {
+    plan = planMatch[1].trim().toLowerCase()
   }
 
-  // Parse each usage section
-  $('div.space-y-6 > div > div.flex.justify-between').each((_i, el) => {
-    const $parent = $(el).parent()
-    const labels = $(el).find('span.text-sm')
+  // Parse each usage section using regex
+  // Looking for the patterns like: <span class="text-sm">...</span> and <span class="text-sm">...% used</span>
+  // We use a more generic approach to find the usage blocks
+  const blockMatches = html.matchAll(/<div[^>]*?class="flex justify-between"[^>]*?>(.*?)<\/div>/gs)
+  for (const blockMatch of blockMatches) {
+    const blockContent = blockMatch[1]
+    const spanMatches = Array.from(
+      blockContent.matchAll(/<span[^>]*?class="text-sm"[^>]*?>(.*?)<\/span>/gs)
+    )
 
-    if (labels.length >= 2) {
-      const name = $(labels[0]).text().trim()
-      const valueText = $(labels[1]).text().trim()
+    if (spanMatches.length >= 2) {
+      const name = spanMatches[0][1].replace(/<[^>]*>?/gm, '').trim()
+      const valueText = spanMatches[1][1].replace(/<[^>]*>?/gm, '').trim()
 
       let percentage = 0
 
@@ -66,25 +71,18 @@ export function parseOllamaPage(html: string): UsageResult | null {
         }
       }
     }
+  }
 
-    // Look for reset time in the parent div
-    const $resetEl = $parent.find('.local-time')
-    if ($resetEl.length > 0) {
-      const resetTimeAttr = $resetEl.attr('data-time')
-      if (resetTimeAttr) {
-        const resetTime = new Date(resetTimeAttr).getTime()
-        if (!Number.isNaN(resetTime)) {
-          const hoursUntilReset = Math.max(0, Math.round((resetTime - Date.now()) / 3600000))
-
-          // Keep the latest reset time
-          if (resetInHours === null || hoursUntilReset > resetInHours) {
-            resetInHours = hoursUntilReset
-            resetDate = resetTimeAttr
-          }
-        }
-      }
+  // Look for reset time
+  const resetMatch = html.match(/class="local-time"[^>]*?data-time="([^"]+)"/i)
+  if (resetMatch) {
+    const resetTimeAttr = resetMatch[1]
+    const resetTime = new Date(resetTimeAttr).getTime()
+    if (!Number.isNaN(resetTime)) {
+      resetInHours = Math.max(0, Math.round((resetTime - Date.now()) / 3600000))
+      resetDate = resetTimeAttr
     }
-  })
+  }
 
   if (tiers.length === 0) return null
 
