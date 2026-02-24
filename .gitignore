@@ -4,9 +4,38 @@ node_modules/
 # Build output
 dist/
 
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+.envrc
+
+# Coverage
+coverage/
+
 # IDE
 .idea/
+.vscode/
+*.swp
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Wireit cache
+.wireit/
+
+# Claude Code
+.claude/
+
+# Project management
+KANBAN.md
+
+# Misc
+.cache/
+.temp/
+.tmp/
