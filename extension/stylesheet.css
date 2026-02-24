@@ -117,3 +117,17 @@
   color: #aaaaaa;
   padding: 4px 12px;
 }
+
+/* Credential validation status icons */
+.ai-usage-status-icon {
+  icon-size: 16px;
+  margin-left: 4px;
+}
+
+.ai-usage-status-icon.success {
+  color: #2ecc71;
+}
+
+.ai-usage-status-icon.error {
+  color: #e74c3c;
+}
