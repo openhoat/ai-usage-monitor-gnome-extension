@@ -1,13 +1,12 @@
 import * as cheerio from 'cheerio'
+import { getUserAgent } from '../config.js'
 import { fetchWithRetry } from '../helpers/fetch.js'
 import type { ErrorResult, Provider, Result, TierUsage, UsageResult } from '../types.js'
-
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
 
 function buildHeaders(cookie: string): Record<string, string> {
   return {
     Cookie: `sessionKey=${cookie}`,
-    'User-Agent': USER_AGENT,
+    'User-Agent': getUserAgent(),
     Accept: 'application/json, text/html',
   }
 }

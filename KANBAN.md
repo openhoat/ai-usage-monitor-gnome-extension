@@ -25,8 +25,9 @@
 - [ ] **#test-coverage [23/02/2026 17:00:00] 🟡 P2 ✅ [TEST]** Configure vitest coverage with 80% thresholds (lines, functions, branches, statements)
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
 - [ ] **#doc-dev [23/02/2026 15:00:00] 🟢 P3 🏗️ [ARCHITECTURE]** Add developer documentation in README (dev setup, running tests, architecture details)
-- [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
 
 ## 🚧 In Progress
 
 ## ✅ Done
+
+- [x] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
