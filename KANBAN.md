@@ -18,11 +18,16 @@
 
 ## 📝 Backlog
 
+- [ ] **#config-pkgjson [24/02/2026 09:43:14] 🔴 P1 ⚙️ [CONFIG]** Complete package.json with repository, bugs, homepage, keywords, author, license, engines fields
+- [ ] **#config-gitignore [24/02/2026 09:43:14] 🔴 P1 ⚙️ [CONFIG]** Improve .gitignore (add .env*, coverage/, *.log, .claude/, KANBAN.md)
 - [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
+- [ ] **#doc-badges [24/02/2026 09:43:14] 🟡 P2 🎨 [UX]** Add README badges (License, CI, TypeScript, Node.js, Vitest, GitHub Stars/Forks/Issues)
+- [ ] **#config-editorconfig [24/02/2026 09:43:14] 🟡 P2 ⚙️ [CONFIG]** Add .editorconfig for cross-editor consistency
+- [ ] **#doc-contributing [24/02/2026 09:43:14] 🟡 P2 🏗️ [ARCHITECTURE]** Add CONTRIBUTING.md with development workflow, commit conventions, and PR guidelines
+- [ ] **#devops-templates [24/02/2026 09:43:14] 🟢 P3 🔧 [DEVOPS]** Add GitHub issue templates (bug report, feature request) and PR template
 - [ ] **#devops-wireit [23/02/2026 17:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add wireit for npm scripts caching and parallelization (build, test, validate)
 - [ ] **#devops-bump-version [23/02/2026 17:00:00] 🟡 P2 🔧 [DEVOPS]** Add bump-version script for automated version updates (package.json, README.md)
 - [ ] **#test-coverage [23/02/2026 17:00:00] 🟡 P2 ✅ [TEST]** Configure vitest coverage with 80% thresholds (lines, functions, branches, statements)
-- [ ] **#doc-badges [23/02/2026 17:00:00] 🟢 P3 🎨 [UX]** Add README badges (License, TypeScript, Node.js, Vitest, GitHub Stars/Forks/Issues)
 - [ ] **#ux-errors [23/02/2026 15:00:00] 🟡 P2 🎨 [UX]** Improve error messages in extension UI to distinguish between invalid credentials, network errors, and timeouts
 - [ ] **#perf-subprocess [23/02/2026 15:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add timeout and cleanup for hung Node.js subprocesses in extension.js
 - [ ] **#ux-credentials [23/02/2026 15:00:00] 🟢 P3 🎨 [UX]** Add credential validation with feedback in preferences dialog
