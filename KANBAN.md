@@ -31,13 +31,12 @@
 
 ## 🚧 In Progress
 
-### [24/02/2026 09:28:37] 🟡 P2 🚀 [PERFORMANCE] Add retry logic with exponential backoff for failed provider requests
-- [ ] **[24/02/2026 09:28:37] ✨ [FEAT]** Create `fetchWithRetry` utility with exponential backoff (3 retries, network errors and 5xx only)
-- [ ] **[24/02/2026 09:28:37] ♻️ [REFACTOR]** Apply `fetchWithRetry` to all providers (Claude, OpenAI, Ollama)
-- [ ] **[24/02/2026 09:28:37] ✅ [TEST]** Add unit tests for `fetchWithRetry` utility
 
 ## ✅ Done
 
+- [x] **[24/02/2026 09:37:00] ✨ [FEAT]** Create `fetchWithRetry` utility with exponential backoff (3 retries, network errors and 5xx only)
+- [x] **[24/02/2026 09:37:00] ♻️ [REFACTOR]** Apply `fetchWithRetry` to all providers (Claude, OpenAI, Ollama)
+- [x] **[24/02/2026 09:37:00] ✅ [TEST]** Add unit tests for `fetchWithRetry` utility
 - [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for Claude provider (API endpoint flow, scraping fallback, error handling)
 - [x] **[24/02/2026 09:33:00] ✅ [TEST]** Add unit tests for OpenAI provider (costs API, subscription API, pagination, error handling)
 - [x] **[24/02/2026 09:25:00] 🔧 [CHORE]** Remove unused @testing-library/react dependency

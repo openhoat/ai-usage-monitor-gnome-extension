@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 vi.mock('../helpers/fetch.js', () => ({
-  fetchWithTimeout: vi.fn(),
+  fetchWithRetry: vi.fn(),
 }))
 
-import { fetchWithTimeout } from '../helpers/fetch.js'
+import { fetchWithRetry } from '../helpers/fetch.js'
 import { claudeProvider } from './claude.js'
 
-const mockFetch = vi.mocked(fetchWithTimeout)
+const mockFetch = vi.mocked(fetchWithRetry)
 
 function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {

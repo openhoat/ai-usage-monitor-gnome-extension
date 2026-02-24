@@ -1,4 +1,4 @@
-import { fetchWithTimeout } from '../helpers/fetch.js'
+import { fetchWithRetry } from '../helpers/fetch.js'
 import type { Provider, TierUsage, UsageResult } from '../types.js'
 
 function logError(message: string): void {
@@ -51,7 +51,7 @@ async function fetchMonthlyCosts(apiKey: string): Promise<Map<string, number> | 
 
   try {
     while (url) {
-      const res = await fetchWithTimeout(url, { headers, redirect: 'follow' })
+      const res = await fetchWithRetry(url, { headers, redirect: 'follow' })
       if (!res.ok) {
         const body = await res.text().catch(() => '')
         logError(`[openai] Costs API error: ${res.status} ${res.statusText} – ${body}`)
@@ -79,7 +79,7 @@ async function fetchBudgetLimit(apiKey: string): Promise<number | null> {
   const headers = buildHeaders(apiKey)
 
   try {
-    const res = await fetchWithTimeout('https://api.openai.com/v1/organization/subscription', {
+    const res = await fetchWithRetry('https://api.openai.com/v1/organization/subscription', {
       headers,
       redirect: 'follow',
     })
