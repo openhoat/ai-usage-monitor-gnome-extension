@@ -18,7 +18,6 @@
 
 ## 📝 Backlog
 
-- [ ] **#perf-timeout [23/02/2026 15:00:00] 🔴 P1 🚀 [PERFORMANCE]** Add request timeouts with AbortController in all providers to prevent extension freezes
 - [ ] **#test-providers [23/02/2026 15:00:00] 🔴 P1 ✅ [TEST]** Add unit tests for Claude and OpenAI providers (HTML parsing, API calls, error handling)
 - [ ] **#devops-cicd [23/02/2026 15:00:00] 🔴 P1 🔧 [DEVOPS]** Setup GitHub Actions CI/CD pipeline (build, lint, tests on commits/PR)
 - [ ] **#devops-wireit [23/02/2026 17:00:00] 🟡 P2 🚀 [PERFORMANCE]** Add wireit for npm scripts caching and parallelization (build, test, validate)
@@ -34,6 +33,10 @@
 - [ ] **#config-useragent [23/02/2026 15:00:00] 🟢 P3 ⚙️ [CONFIG]** Replace hardcoded User-Agent string with a dynamic or configurable value
 ## 🚧 In Progress
 
+
 ## ✅ Done
 
+- [x] **[24/02/2026 09:21:09] ✨ [FEAT]** Create `fetchWithTimeout` utility function with AbortController and configurable timeout
+- [x] **[24/02/2026 09:21:09] ♻️ [REFACTOR]** Apply `fetchWithTimeout` to all providers (Claude, OpenAI, Ollama)
+- [x] **[24/02/2026 09:21:09] ✅ [TEST]** Add unit tests for `fetchWithTimeout` utility
 - [x] **[23/02/2026 19:35:00] ✨ [FEAT]** Display last refresh time in extension widget menu (store timestamp on fetch, show "Last updated: HH:MM")

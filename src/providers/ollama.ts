@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { fetchWithTimeout } from '../helpers/fetch.js'
 import type { Provider, TierUsage, UsageResult } from '../types.js'
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
@@ -103,7 +104,7 @@ async function scrapeSettingsPage(sessionCookie: string): Promise<UsageResult | 
   const headers = buildHeaders(sessionCookie)
 
   try {
-    const res = await fetch('https://ollama.com/settings', {
+    const res = await fetchWithTimeout('https://ollama.com/settings', {
       headers,
       redirect: 'follow',
     })

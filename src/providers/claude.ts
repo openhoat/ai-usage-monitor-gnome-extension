@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { fetchWithTimeout } from '../helpers/fetch.js'
 import type { Provider, TierUsage, UsageResult } from '../types.js'
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
@@ -90,7 +91,7 @@ async function tryApiEndpoints(cookie: string): Promise<UsageResult | null> {
 
   let orgId: string | null = null
   try {
-    const orgRes = await fetch('https://claude.ai/api/organizations', {
+    const orgRes = await fetchWithTimeout('https://claude.ai/api/organizations', {
       headers,
       redirect: 'manual',
     })
@@ -106,7 +107,7 @@ async function tryApiEndpoints(cookie: string): Promise<UsageResult | null> {
   if (!orgId) return null
 
   try {
-    const usageRes = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, {
+    const usageRes = await fetchWithTimeout(`https://claude.ai/api/organizations/${orgId}/usage`, {
       headers,
       redirect: 'manual',
     })
@@ -126,7 +127,7 @@ async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
 
   let html: string
   try {
-    const res = await fetch('https://claude.ai/settings/usage', {
+    const res = await fetchWithTimeout('https://claude.ai/settings/usage', {
       headers,
       redirect: 'follow',
     })
