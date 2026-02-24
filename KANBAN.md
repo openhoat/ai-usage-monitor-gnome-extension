@@ -30,14 +30,3 @@
 ## 🚧 In Progress
 
 ## ✅ Done
-
-- [x] **[24/02/2026 10:15:00] ✨ [FEAT]** Add subprocess timeout (60s) with GLib.timeout_add_seconds and force_exit in extension.js
-- [x] **[24/02/2026 10:15:00] ✨ [FEAT]** Add max concurrent subprocess limit (5) to prevent resource exhaustion
-- [x] **[24/02/2026 10:05:00] ♻️ [REFACTOR]** Add typed error codes in fetch-usage.ts (distinguish auth_expired, network_error, timeout)
-- [x] **[24/02/2026 10:05:00] ✨ [FEAT]** Update extension.js to display user-friendly error messages with icons based on error code
-- [x] **[24/02/2026 09:47:21] 🔧 [CHORE]** Install wireit and configure scripts with file tracking and parallel execution
-- [x] **[24/02/2026 09:47:21] ✅ [TEST]** Verify all wireit-wrapped scripts work correctly
-- [x] **[24/02/2026 09:47:21] 🔧 [CHORE]** Create .editorconfig file
-- [x] **[24/02/2026 09:47:21] 🎨 [STYLE]** Add badges to README
-- [x] **[24/02/2026 09:47:21] 🔧 [CHORE]** Improve .gitignore with comprehensive patterns
-- [x] **[24/02/2026 09:47:21] 🔧 [CHORE]** Add repository, bugs, homepage, keywords, author, license, engines fields to package.json
