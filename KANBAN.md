@@ -26,3 +26,5 @@
 ## 🚧 In Progress
 
 ## ✅ Done
+
+- [x] **#esm-migration [25/02/2026 09:40:00] 🔴 P1 🏗️ [ARCHITECTURE]** Switch project to ESM and remove require usage for GNOME extension compatibility

@@ -1,6 +1,7 @@
 {
   "name": "ai-usage-monitor-gnome-extension",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "Monitor AI subscription usage (Claude, OpenAI, Ollama) in GNOME Shell",
   "author": "Olivier Penhoat <openhoat@gmail.com> (http://headwood.net/)",
@@ -35,8 +36,8 @@
     "test:watch": "vitest",
     "qa": "wireit",
     "qa:fix": "biome check --write .",
-    "changelog": "node scripts/generate-changelog.js",
-    "bump": "node scripts/bump-version.js",
+    "changelog": "node scripts/generate-changelog.cjs",
+    "bump": "node scripts/bump-version.cjs",
     "validate": "wireit",
     "prepare": "husky",
     "pack": "bash scripts/generate-zip.sh"
