@@ -23,14 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run QA (linting & formatting)
-        run: npm run qa
-
-      - name: Build TypeScript
-        run: npm run build
-
-      - name: Run tests
-        run: npm run test
+      - name: Run validation (QA, Build, Test)
+        run: npm run validate
 
   release:
     name: Release
@@ -50,16 +44,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext libglib2.0-bin
 
       - name: Create release archive
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          zip -r ai-usage-monitor-v${VERSION}.zip extension/ dist/
+        run: npm run pack
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ai-usage-monitor-*.zip
+          files: dist/*.zip
           generate_release_notes: true

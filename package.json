@@ -36,8 +36,8 @@
     "test:watch": "vitest",
     "qa": "wireit",
     "qa:fix": "biome check --write .",
-    "changelog": "node scripts/generate-changelog.cjs",
-    "bump": "node scripts/bump-version.cjs",
+    "changelog": "node scripts/generate-changelog.js",
+    "bump": "node scripts/bump-version.js",
     "validate": "wireit",
     "prepare": "husky",
     "pack": "bash scripts/generate-zip.sh"

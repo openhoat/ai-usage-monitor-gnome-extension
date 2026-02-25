@@ -10,9 +10,11 @@
  * Grouped by year (## YYYY) and day (### DD/MM)
  */
 
-const { execSync } = require('node:child_process')
-const fs = require('node:fs')
-const path = require('node:path')
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 
 const CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md')
 
@@ -44,7 +46,7 @@ function execGit(command) {
  * Get the latest git tag (semantic version tag).
  * Returns null if no tags exist.
  */
-function getLatestTag() {
+export function getLatestTag() {
   const tag = execGit('git describe --tags --abbrev=0').trim()
   return tag || null
 }
@@ -121,7 +123,7 @@ function formatDay(date) {
  * Generate the complete CHANGELOG content from Git history since the latest tag.
  * Groups commits by year and day in reverse chronological order.
  */
-function generateChangelog() {
+export function generateChangelog() {
   const latestTag = getLatestTag()
   const commits = getCommits(latestTag)
 
@@ -210,8 +212,7 @@ function main() {
   }
 }
 
-if (require.main === module) {
+const isMain = process.argv[1] === fileURLToPath(import.meta.url)
+if (isMain) {
   main()
 }
-
-module.exports = { generateChangelog, getLatestTag }
