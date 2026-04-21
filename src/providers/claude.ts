@@ -1,13 +1,21 @@
-import { getUserAgent } from '../config.js'
 import { fetchWithRetry } from '../helpers/fetch.js'
-import type { ErrorResult, Provider, Result, TierUsage, UsageResult } from '../types.js'
+import type { Provider, Result, TierUsage, UsageResult } from '../types.js'
 
-function buildHeaders(cookie: string): Record<string, string> {
-  return {
-    Cookie: `sessionKey=${cookie}`,
-    'User-Agent': getUserAgent(),
-    Accept: 'application/json, text/html',
+function buildHeaders(credential: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    Accept: 'application/json',
   }
+
+  // Detect format: sk-ant-sid is a session cookie, sk-ant-oat is an OAuth token
+  if (credential.startsWith('sk-ant-sid')) {
+    headers.Cookie = `sessionKey=${credential}`
+  } else {
+    headers.Authorization = `Bearer ${credential}`
+  }
+
+  return headers
 }
 
 interface OrgInfo {
@@ -18,7 +26,7 @@ interface OrgInfo {
 
 interface UsageBucket {
   utilization: number
-  resets_at: string
+  resets_at: string | null
 }
 
 interface RawUsageData {
@@ -28,8 +36,11 @@ interface RawUsageData {
   seven_day_opus?: UsageBucket | null
   seven_day_sonnet?: UsageBucket | null
   seven_day_cowork?: UsageBucket | null
+  seven_day_omelette?: UsageBucket | null
   iguana_necktie?: UsageBucket | null
-  extra_usage?: UsageBucket | null
+  extra_usage?: {
+    utilization: number | null
+  } | null
 }
 
 const BUCKET_LABELS: Record<string, string> = {
@@ -39,6 +50,7 @@ const BUCKET_LABELS: Record<string, string> = {
   seven_day_opus: 'Opus (7d)',
   seven_day_sonnet: 'Sonnet (7d)',
   seven_day_cowork: 'Cowork (7d)',
+  seven_day_omelette: 'Sonnet 3.5 (7d)',
   iguana_necktie: 'Special',
   extra_usage: 'Extra Usage',
 }
@@ -50,14 +62,15 @@ function parseRawUsageData(data: RawUsageData): UsageResult | null {
 
   for (const [key, label] of Object.entries(BUCKET_LABELS)) {
     const bucket = data[key as keyof RawUsageData]
-    if (!bucket) continue
+    if (!bucket || bucket.utilization === undefined || bucket.utilization === null) continue
 
     tiers.push({
       name: label,
       percentage: Math.round(bucket.utilization * 100) / 100,
     })
 
-    if (bucket.resets_at) {
+    // Type guard for resets_at
+    if (bucket && typeof bucket === 'object' && 'resets_at' in bucket && bucket.resets_at) {
       const t = new Date(bucket.resets_at).getTime()
       if (t > latestResetTime) {
         latestResetTime = t
@@ -84,8 +97,8 @@ function parseRawUsageData(data: RawUsageData): UsageResult | null {
   }
 }
 
-async function tryApiEndpoints(cookie: string): Promise<UsageResult | null> {
-  const headers = buildHeaders(cookie)
+async function tryApiEndpoints(credential: string): Promise<UsageResult | null> {
+  const headers = buildHeaders(credential)
 
   let orgId: string | null = null
   try {
@@ -97,6 +110,8 @@ async function tryApiEndpoints(cookie: string): Promise<UsageResult | null> {
       const orgs = (await orgRes.json()) as OrgInfo[]
       const proOrg = orgs.find(o => o.capabilities?.includes('claude_pro'))
       orgId = proOrg?.uuid ?? orgs[0]?.uuid ?? null
+    } else if (orgRes.status === 401 || orgRes.status === 403) {
+      return null // Will be handled as auth error
     }
   } catch {
     return null
@@ -120,178 +135,6 @@ async function tryApiEndpoints(cookie: string): Promise<UsageResult | null> {
   return null
 }
 
-async function scrapeUsagePage(cookie: string): Promise<UsageResult | null> {
-  const headers = buildHeaders(cookie)
-
-  let html: string
-  try {
-    const res = await fetchWithRetry('https://claude.ai/settings/usage', {
-      headers,
-      redirect: 'follow',
-    })
-
-    if (res.status === 401 || res.status === 403) {
-      return null
-    }
-    if (!res.ok) {
-      return null
-    }
-
-    html = await res.text()
-  } catch {
-    return null
-  }
-
-  if (html.includes('/login') && !html.includes('usage')) {
-    return null
-  }
-
-  const tiers: TierUsage[] = []
-  let overallPercentage = 0
-  let resetDate: string | null = null
-  let resetInHours: number | null = null
-  let plan = 'pro'
-
-  // Strategy 1: Parse __NEXT_DATA__ using regex
-  const nextDataMatch = html.match(
-    /<script[^>]*?id="__NEXT_DATA__"[^>]*?type="application\/json"[^>]*?>(.*?)<\/script>/s
-  )
-  if (nextDataMatch) {
-    try {
-      const nextData = JSON.parse(nextDataMatch[1])
-      const pageProps = nextData?.props?.pageProps
-      if (pageProps) {
-        const result = parseRawUsageData(pageProps as RawUsageData)
-        if (result) return result
-      }
-    } catch {
-      // Continue to other strategies
-    }
-  }
-
-  // Strategy 2: Look for inline script data
-  const scriptMatches = html.matchAll(/<script[^>]*?>(.*?)<\/script>/gs)
-  for (const scriptMatch of scriptMatches) {
-    const text = scriptMatch[1]
-    const jsonPatterns = [
-      /self\.__next_f\.push\(\[.*?"(.+?)"\]/g,
-      /\{[^}]*"tiers"\s*:\s*\[/g,
-      /\{[^}]*"usage"\s*:/g,
-    ]
-
-    for (const pattern of jsonPatterns) {
-      const matches = text.matchAll(pattern)
-      for (const match of matches) {
-        try {
-          let jsonStr = match[1] || match[0]
-          jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\\\/g, '\\')
-          const parsed = JSON.parse(jsonStr)
-          const result = parseRawUsageData(parsed as RawUsageData)
-          if (result) {
-            tiers.push(...result.tiers)
-            overallPercentage = result.overall_percentage
-            resetDate = result.reset_date
-            resetInHours = result.reset_in_hours
-          }
-        } catch {
-          // Not valid JSON, continue
-        }
-      }
-    }
-  }
-
-  // Strategy 3: Regex extraction from HTML text
-  if (tiers.length === 0) {
-    const percentageMatches = html.matchAll(
-      /(\w[\w\s]*?)\s*[:]\s*(\d+(?:\.\d+)?)\s*%\s*(?:used)?/gi
-    )
-    for (const match of percentageMatches) {
-      const name = match[1].trim()
-      const pct = parseFloat(match[2])
-      if (pct >= 0 && pct <= 100 && name.length < 30) {
-        tiers.push({ name, percentage: pct })
-      }
-    }
-
-    if (tiers.length === 0) {
-      const simpleMatches = html.matchAll(/(\d+(?:\.\d+)?)\s*%\s*used/gi)
-      for (const match of simpleMatches) {
-        tiers.push({
-          name: `Tier ${tiers.length + 1}`,
-          percentage: parseFloat(match[1]),
-        })
-      }
-    }
-  }
-
-  // Look for progress bar aria values using regex
-  const ariaMatches = html.matchAll(
-    /role="progressbar"[^>]*?aria-valuenow="(\d+(?:\.\d+)?)"[^>]*?aria-label="([^"]+)"/gi
-  )
-  for (const match of ariaMatches) {
-    const pct = parseFloat(match[1])
-    const label = match[2].trim()
-    if (!Number.isNaN(pct)) {
-      tiers.push({ name: label, percentage: pct })
-    }
-  }
-
-  // Look for width-based progress bars using regex
-  if (tiers.length === 0) {
-    const widthMatches = html.matchAll(/style="[^"]*?width:\s*(\d+(?:\.\d+)?)%[^"]*?"/gi)
-    for (const match of widthMatches) {
-      const pct = parseFloat(match[1])
-      if (pct > 0 && pct <= 100) {
-        tiers.push({ name: `Tier ${tiers.length + 1}`, percentage: pct })
-      }
-    }
-  }
-
-  // Extract reset info
-  const resetMatch = html.match(
-    /[Rr]esets?\s+(?:in\s+)?(\d+)\s*d(?:ay)?s?\s*(?:(\d+)\s*h(?:our)?s?)?/
-  )
-  if (resetMatch) {
-    const days = parseInt(resetMatch[1], 10)
-    const hours = parseInt(resetMatch[2] || '0', 10)
-    resetInHours = days * 24 + hours
-    const resetTime = new Date(Date.now() + resetInHours * 3600000)
-    resetDate = resetTime.toISOString()
-  }
-
-  if (!resetDate) {
-    const dateMatch = html.match(/[Rr]esets?\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})/)
-    if (dateMatch) {
-      const parsed = new Date(dateMatch[1])
-      if (!Number.isNaN(parsed.getTime())) {
-        resetDate = parsed.toISOString()
-        resetInHours = Math.max(0, Math.round((parsed.getTime() - Date.now()) / 3600000))
-      }
-    }
-  }
-
-  const planMatch = html.match(/\b(Pro|Team|Enterprise|Free)\s+(?:plan|Plan)/i)
-  if (planMatch) {
-    plan = planMatch[1].toLowerCase()
-  }
-
-  if (tiers.length > 0) {
-    overallPercentage = overallPercentage || Math.max(...tiers.map(t => t.percentage))
-  }
-
-  if (tiers.length === 0 && overallPercentage === 0) return null
-
-  return {
-    status: 'ok',
-    provider: 'claude',
-    plan,
-    tiers,
-    overall_percentage: Math.round(overallPercentage * 100) / 100,
-    reset_date: resetDate,
-    reset_in_hours: resetInHours,
-  }
-}
-
 export const claudeProvider: Provider = {
   name: 'claude',
   async fetchUsage(credential: string): Promise<Result> {
@@ -299,8 +142,27 @@ export const claudeProvider: Provider = {
       const apiResult = await tryApiEndpoints(credential)
       if (apiResult) return apiResult
 
-      const scrapeResult = await scrapeUsagePage(credential)
-      if (scrapeResult) return scrapeResult
+      // If we are here, it means either the API call failed or the credential is invalid
+      const headers = buildHeaders(credential)
+      const checkRes = await fetchWithRetry('https://claude.ai/api/organizations', {
+        headers,
+        redirect: 'manual',
+      })
+
+      if (checkRes.status === 401 || checkRes.status === 403) {
+        const type = credential.startsWith('sk-ant-sid') ? 'Session cookie' : 'OAuth token'
+        return {
+          status: 'error',
+          error_code: 'auth_expired',
+          message: `Authentication failed. ${type} may be expired or invalid.`,
+        }
+      }
+
+      return {
+        status: 'error',
+        error_code: 'network_error',
+        message: 'Could not reach Claude API or parse response.',
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -308,12 +170,5 @@ export const claudeProvider: Provider = {
       }
       return { status: 'error', error_code: 'network_error', message: `Network error: ${message}` }
     }
-
-    const error: ErrorResult = {
-      status: 'error',
-      error_code: 'auth_expired',
-      message: 'Could not retrieve usage data. Session key may be expired or invalid.',
-    }
-    return error
   },
 }

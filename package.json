@@ -1,6 +1,6 @@
 {
   "name": "ai-usage-monitor-gnome-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "private": true,
   "description": "Monitor AI subscription usage (Claude, OpenAI, Ollama) in GNOME Shell",
@@ -32,6 +32,8 @@
     "build": "wireit",
     "dev": "npm run build && bash scripts/install.sh && dbus-run-session -- gnome-shell --wayland",
     "start": "node dist/fetch-usage.js",
+    "start:web": "node dist/server/index.js",
+    "dev:web": "tsx watch src/server/index.ts",
     "test": "wireit",
     "test:watch": "vitest",
     "qa": "wireit",
@@ -78,7 +80,6 @@
       ]
     }
   },
-  "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "2.4.4",
     "@commitlint/cli": "20.4.2",
@@ -87,6 +88,7 @@
     "@types/node": "^22.0.0",
     "happy-dom": "20.7.0",
     "husky": "9.1.7",
+    "tsx": "4.21.0",
     "typescript": "^5.7.0",
     "vitest": "4.0.18",
     "wireit": "0.14.12"

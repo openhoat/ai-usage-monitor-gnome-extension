@@ -84,7 +84,7 @@ describe('openaiProvider', () => {
 
       expect(result).not.toBeNull()
       expect(result?.overall_percentage).toBe(0)
-      expect(result?.tiers[0].name).toBe('Monthly Spend')
+      expect(result?.tiers[0].name).toBe('Monthly Spend ($8.00)')
     })
 
     test('should include per-model breakdown', async () => {

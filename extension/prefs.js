@@ -9,11 +9,22 @@ import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/
 const SUBPROCESS_TIMEOUT_SECONDS = 30
 
 const PROVIDER_CONFIG = {
+  anthropic: {
+    settingKey: 'anthropic-api-key',
+    label: 'Anthropic (API)',
+    description:
+      'Your Anthropic Admin API key for API usage monitoring. Go to console.anthropic.com → Settings → API keys → Create key.',
+  },
   claude: {
     settingKey: 'session-cookie',
-    label: 'Claude (Anthropic)',
+    label: 'Claude (claude.ai)',
     description:
       'To get your session cookie: open claude.ai → F12 → Application tab → Cookies → copy the sessionKey value.',
+  },
+  gemini: {
+    settingKey: 'gemini-api-key',
+    label: 'Gemini (Google AI)',
+    description: 'API key from Google AI Studio. Go to aistudio.google.com → Get API Key.',
   },
   openai: {
     settingKey: 'openai-api-key',

@@ -14,13 +14,17 @@ const SUBPROCESS_TIMEOUT_SECONDS = 60
 const MAX_CONCURRENT_SUBPROCESSES = 5
 
 const PROVIDER_LABELS = {
+  anthropic: 'Anthropic',
   claude: 'Claude',
+  gemini: 'Gemini',
   ollama: 'Ollama',
   openai: 'OpenAI',
 }
 
 const PROVIDER_CREDENTIALS = {
+  anthropic: 'anthropic-api-key',
   claude: 'session-cookie',
+  gemini: 'gemini-api-key',
   ollama: 'ollama-session-cookie',
   openai: 'openai-api-key',
 }
@@ -444,7 +448,12 @@ const AiUsageIndicator = GObject.registerClass(
       const _ = this._extensionObj.gettext.bind(this._extensionObj)
       this._contentSection.removeAll()
 
-      const providers = Object.keys(results)
+      // Sort providers alphabetically by their display label
+      const providers = Object.keys(results).sort((a, b) => {
+        const labelA = PROVIDER_LABELS[a] || a
+        const labelB = PROVIDER_LABELS[b] || b
+        return labelA.localeCompare(labelB)
+      })
 
       if (providers.length === 0) {
         this._label.set_text('--')
@@ -515,8 +524,45 @@ const AiUsageIndicator = GObject.registerClass(
 
         // Tier bars
         if (data.tiers && data.tiers.length > 0) {
+          const isApi = data.plan === 'api'
           for (const tier of data.tiers) {
-            this._contentSection.addMenuItem(new UsageBarItem(tier.name, tier.percentage))
+            // Hide progress bars for Info-only tiers in API providers (percentage is 0)
+            const hasBudget = data.overall_percentage > 0 || tier.percentage > 0
+            const isMainTier =
+              tier.name.toLowerCase().includes('monthly') ||
+              tier.name.toLowerCase().includes('spend')
+
+            if (!isApi || hasBudget || (isMainTier && tier.name.includes('$'))) {
+              this._contentSection.addMenuItem(new UsageBarItem(tier.name, tier.percentage))
+            } else {
+              // Just show info as a simple menu item
+              const infoItem = new PopupMenu.PopupBaseMenuItem({
+                reactive: false,
+                can_focus: false,
+              })
+              const infoBox = new St.BoxLayout({
+                style_class: 'ai-usage-bar-row',
+                vertical: false,
+                x_expand: true,
+              })
+              infoBox.add_child(
+                new St.Label({
+                  text: tier.name,
+                  style_class: 'ai-usage-bar-name',
+                  y_align: Clutter.ActorAlign.CENTER,
+                })
+              )
+              infoBox.add_child(new St.Widget({ x_expand: true }))
+              infoBox.add_child(
+                new St.Label({
+                  text: '✓',
+                  style_class: 'ai-usage-bar-percentage',
+                  y_align: Clutter.ActorAlign.CENTER,
+                })
+              )
+              infoItem.add_child(infoBox)
+              this._contentSection.addMenuItem(infoItem)
+            }
           }
         }
 

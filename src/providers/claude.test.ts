@@ -16,13 +16,6 @@ function jsonResponse(data: unknown, status = 200): Response {
   })
 }
 
-function htmlResponse(html: string, status = 200): Response {
-  return new Response(html, {
-    status,
-    headers: { 'Content-Type': 'text/html' },
-  })
-}
-
 const sampleOrgs = [{ uuid: 'org-123', name: 'My Org', capabilities: ['claude_pro'] }]
 
 const sampleRawUsage = {
@@ -45,19 +38,20 @@ describe('claudeProvider', () => {
         .mockResolvedValueOnce(jsonResponse(sampleOrgs))
         .mockResolvedValueOnce(jsonResponse(sampleRawUsage))
 
-      const result = await claudeProvider.fetchUsage('test-cookie')
+      const result = await claudeProvider.fetchUsage('test-token')
 
-      expect(result).not.toBeNull()
-      expect(result?.status).toBe('ok')
-      expect(result?.provider).toBe('claude')
-      expect(result?.plan).toBe('pro')
-      expect(result?.tiers).toHaveLength(2)
-      expect(result?.tiers[0].name).toBe('Standard (5h)')
-      expect(result?.tiers[0].percentage).toBe(45.5)
-      expect(result?.tiers[1].name).toBe('Extended (7d)')
-      expect(result?.tiers[1].percentage).toBe(20)
-      expect(result?.overall_percentage).toBe(45.5)
-      expect(result?.reset_date).toBe('2026-03-01T00:00:00Z')
+      expect(result.status).toBe('ok')
+      if (result.status === 'ok') {
+        expect(result.provider).toBe('claude')
+        expect(result.plan).toBe('pro')
+        expect(result.tiers).toHaveLength(2)
+        expect(result.tiers[0].name).toBe('Standard (5h)')
+        expect(result.tiers[0].percentage).toBe(45.5)
+        expect(result.tiers[1].name).toBe('Extended (7d)')
+        expect(result.tiers[1].percentage).toBe(20)
+        expect(result.overall_percentage).toBe(45.5)
+        expect(result.reset_date).toBe('2026-03-01T00:00:00Z')
+      }
     })
 
     test('should select pro org from organizations list', async () => {
@@ -69,127 +63,19 @@ describe('claudeProvider', () => {
         .mockResolvedValueOnce(jsonResponse(orgs))
         .mockResolvedValueOnce(jsonResponse(sampleRawUsage))
 
-      await claudeProvider.fetchUsage('test-cookie')
+      await claudeProvider.fetchUsage('test-token')
 
       expect(mockFetch).toHaveBeenCalledTimes(2)
       const usageUrl = mockFetch.mock.calls[1][0] as string
       expect(usageUrl).toContain('org-pro')
     })
-
-    test('should use first org when no pro org found', async () => {
-      const orgs = [{ uuid: 'org-basic', name: 'Basic Org', capabilities: [] }]
-      mockFetch
-        .mockResolvedValueOnce(jsonResponse(orgs))
-        .mockResolvedValueOnce(jsonResponse(sampleRawUsage))
-
-      await claudeProvider.fetchUsage('test-cookie')
-
-      const usageUrl = mockFetch.mock.calls[1][0] as string
-      expect(usageUrl).toContain('org-basic')
-    })
-
-    test('should return error when organizations returns empty array', async () => {
-      mockFetch
-        .mockResolvedValueOnce(jsonResponse([]))
-        .mockResolvedValueOnce(htmlResponse('<html><body>login</body></html>'))
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result.status).toBe('error')
-      if (result.status === 'error') {
-        expect(result.error_code).toBe('auth_expired')
-      }
-    })
-
-    test('should return error when usage data has no buckets', async () => {
-      mockFetch
-        .mockResolvedValueOnce(jsonResponse(sampleOrgs))
-        .mockResolvedValueOnce(jsonResponse({}))
-        .mockResolvedValueOnce(htmlResponse('<html><body>login</body></html>'))
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result.status).toBe('error')
-      if (result.status === 'error') {
-        expect(result.error_code).toBe('auth_expired')
-      }
-    })
   })
 
-  describe('API error handling', () => {
-    test('should fall back to scraping when organizations returns non-200', async () => {
-      mockFetch.mockResolvedValueOnce(jsonResponse({}, 403)).mockResolvedValueOnce(
-        htmlResponse(
-          `<html><script id="__NEXT_DATA__" type="application/json">
-            {"props":{"pageProps":{"five_hour":{"utilization":30,"resets_at":"2026-03-01T00:00:00Z"}}}}
-            </script></html>`
-        )
-      )
+  describe('error handling', () => {
+    test('should return auth_expired when organizations returns 401', async () => {
+      mockFetch.mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401))
 
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result).not.toBeNull()
-      expect(result?.tiers[0].percentage).toBe(30)
-    })
-
-    test('should fall back to scraping when organizations fetch throws', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error')).mockResolvedValueOnce(
-        htmlResponse(
-          `<html><script id="__NEXT_DATA__" type="application/json">
-            {"props":{"pageProps":{"five_hour":{"utilization":15,"resets_at":"2026-03-01T00:00:00Z"}}}}
-            </script></html>`
-        )
-      )
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result).not.toBeNull()
-      expect(result?.tiers[0].percentage).toBe(15)
-    })
-
-    test('should fall back to scraping when usage endpoint returns non-200', async () => {
-      mockFetch
-        .mockResolvedValueOnce(jsonResponse(sampleOrgs))
-        .mockResolvedValueOnce(jsonResponse({}, 500))
-        .mockResolvedValueOnce(
-          htmlResponse(
-            `<html><script id="__NEXT_DATA__" type="application/json">
-            {"props":{"pageProps":{"five_hour":{"utilization":10,"resets_at":"2026-03-01T00:00:00Z"}}}}
-            </script></html>`
-          )
-        )
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result).not.toBeNull()
-      expect(result?.tiers[0].percentage).toBe(10)
-    })
-  })
-
-  describe('scraping fallback', () => {
-    test('should parse __NEXT_DATA__ from scraped page', async () => {
-      mockFetch.mockResolvedValueOnce(jsonResponse([], 200)).mockResolvedValueOnce(
-        htmlResponse(
-          `<html><script id="__NEXT_DATA__" type="application/json">
-            {"props":{"pageProps":{"five_hour":{"utilization":50,"resets_at":"2026-03-01T00:00:00Z"},
-            "seven_day":{"utilization":25,"resets_at":"2026-03-07T00:00:00Z"}}}}
-            </script></html>`
-        )
-      )
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
-
-      expect(result).not.toBeNull()
-      expect(result?.tiers).toHaveLength(2)
-      expect(result?.overall_percentage).toBe(50)
-    })
-
-    test('should return error when scraping returns 401', async () => {
-      mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce(htmlResponse('Unauthorized', 401))
-
-      const result = await claudeProvider.fetchUsage('test-cookie')
+      const result = await claudeProvider.fetchUsage('invalid-token')
 
       expect(result.status).toBe('error')
       if (result.status === 'error') {
@@ -197,48 +83,53 @@ describe('claudeProvider', () => {
       }
     })
 
-    test('should return error when scraped page contains login redirect', async () => {
-      mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce(htmlResponse('<html><a href="/login">Login</a></html>'))
+    test('should return auth_expired when organizations returns 403', async () => {
+      mockFetch.mockResolvedValue(jsonResponse({ error: 'forbidden' }, 403))
 
-      const result = await claudeProvider.fetchUsage('test-cookie')
+      const result = await claudeProvider.fetchUsage('invalid-token')
 
       expect(result.status).toBe('error')
       if (result.status === 'error') {
         expect(result.error_code).toBe('auth_expired')
       }
     })
-  })
 
-  describe('complete failure', () => {
-    test('should return error when both API and scraping fail', async () => {
-      mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
-        .mockRejectedValueOnce(new Error('Network error'))
+    test('should return network_error when fetch throws', async () => {
+      mockFetch.mockRejectedValue(new Error('DNS error'))
 
-      const result = await claudeProvider.fetchUsage('test-cookie')
+      const result = await claudeProvider.fetchUsage('test-token')
 
       expect(result.status).toBe('error')
       if (result.status === 'error') {
-        expect(result.error_code).toBe('auth_expired')
+        expect(result.error_code).toBe('network_error')
+      }
+    })
+
+    test('should return timeout when AbortError is thrown', async () => {
+      const abortError = new DOMException('The operation was aborted', 'AbortError')
+      mockFetch.mockRejectedValue(abortError)
+
+      const result = await claudeProvider.fetchUsage('test-token')
+
+      expect(result.status).toBe('error')
+      if (result.status === 'error') {
+        expect(result.error_code).toBe('timeout')
       }
     })
   })
 
   describe('headers', () => {
-    test('should send correct headers with cookie', async () => {
+    test('should send Authorization header with Bearer token', async () => {
       mockFetch
         .mockResolvedValueOnce(jsonResponse(sampleOrgs))
         .mockResolvedValueOnce(jsonResponse(sampleRawUsage))
 
-      await claudeProvider.fetchUsage('my-session-key')
+      await claudeProvider.fetchUsage('my-secret-token')
 
       const callOptions = mockFetch.mock.calls[0][1] as RequestInit
       const headers = callOptions.headers as Record<string, string>
-      expect(headers.Cookie).toBe('sessionKey=my-session-key')
+      expect(headers.Authorization).toBe('Bearer my-secret-token')
       expect(headers['User-Agent']).toBeDefined()
-      expect(headers.Accept).toContain('application/json')
     })
   })
 })

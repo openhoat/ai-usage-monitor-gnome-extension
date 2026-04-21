@@ -33,7 +33,9 @@ export function parseOllamaPage(html: string): UsageResult | null {
   // Parse each usage section using regex
   // Looking for the patterns like: <span class="text-sm">...</span> and <span class="text-sm">...% used</span>
   // We use a more generic approach to find the usage blocks
-  const blockMatches = html.matchAll(/<div[^>]*?class="flex justify-between"[^>]*?>(.*?)<\/div>/gs)
+  const blockMatches = html.matchAll(
+    /<div[^>]*?class="[^"]*flex justify-between[^"]*"[^>]*?>(.*?)<\/div>/gs
+  )
   for (const blockMatch of blockMatches) {
     const blockContent = blockMatch[1]
     const spanMatches = Array.from(
@@ -73,8 +75,8 @@ export function parseOllamaPage(html: string): UsageResult | null {
     }
   }
 
-  // Look for reset time
-  const resetMatch = html.match(/class="local-time"[^>]*?data-time="([^"]+)"/i)
+  // Look for reset time (local-time can be among multiple CSS classes)
+  const resetMatch = html.match(/class="[^"]*\blocal-time\b[^"]*"[^>]*?data-time="([^"]+)"/i)
   if (resetMatch) {
     const resetTimeAttr = resetMatch[1]
     const resetTime = new Date(resetTimeAttr).getTime()
@@ -97,46 +99,34 @@ export function parseOllamaPage(html: string): UsageResult | null {
   }
 }
 
-async function scrapeSettingsPage(sessionCookie: string): Promise<UsageResult | null> {
-  const headers = buildHeaders(sessionCookie)
-
-  try {
-    const res = await fetchWithRetry('https://ollama.com/settings', {
-      headers,
-      redirect: 'follow',
-    })
-
-    if (res.status === 401 || res.status === 403) {
-      return null
-    }
-    if (!res.ok) {
-      return null
-    }
-
-    const html = await res.text()
-
-    // Check if we're actually logged in
-    // Note: "/signout" appears in settings page when logged in
-    if (
-      html.includes('action="/signin"') ||
-      html.includes('href="/login"') ||
-      html.includes('href="/signin"')
-    ) {
-      return null
-    }
-
-    return parseOllamaPage(html)
-  } catch {
-    return null
-  }
-}
-
 export const ollamaProvider: Provider = {
   name: 'ollama',
   async fetchUsage(sessionCookie: string): Promise<Result> {
+    const headers = buildHeaders(sessionCookie)
+
+    let html: string
     try {
-      const result = await scrapeSettingsPage(sessionCookie)
-      if (result) return result
+      const res = await fetchWithRetry('https://ollama.com/settings', {
+        headers,
+        redirect: 'follow',
+      })
+
+      if (res.status === 401 || res.status === 403) {
+        return {
+          status: 'error',
+          error_code: 'auth_expired',
+          message: 'Authentication failed. Session cookie may be expired or invalid.',
+        }
+      }
+      if (!res.ok) {
+        return {
+          status: 'error',
+          error_code: 'network_error',
+          message: `Unexpected response: HTTP ${res.status}`,
+        }
+      }
+
+      html = await res.text()
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -144,10 +134,29 @@ export const ollamaProvider: Provider = {
       }
       return { status: 'error', error_code: 'network_error', message: `Network error: ${message}` }
     }
+
+    // Check if we're actually logged in (login redirect detected)
+    if (
+      html.includes('action="/signin"') ||
+      html.includes('href="/login"') ||
+      html.includes('href="/signin"')
+    ) {
+      return {
+        status: 'error',
+        error_code: 'auth_expired',
+        message: 'Session expired. Please refresh your session cookie from ollama.com.',
+      }
+    }
+
+    // Page loaded and authenticated — attempt to parse usage data
+    const result = parseOllamaPage(html)
+    if (result) return result
+
+    // Page loaded and authenticated, but data could not be extracted
     return {
       status: 'error',
-      error_code: 'auth_expired',
-      message: 'Could not retrieve usage data. Session cookie may be expired or invalid.',
+      error_code: 'parse_error',
+      message: 'Could not extract usage data. The page structure may have changed.',
     }
   },
 }

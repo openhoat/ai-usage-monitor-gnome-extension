@@ -128,7 +128,7 @@ export const openaiProvider: Provider = {
       } else {
         // No budget limit — show spend info as-is
         tiers.push({
-          name: `Monthly Spend`,
+          name: `Monthly Spend ($${totalDollars.toFixed(2)})`,
           percentage: 0,
         })
       }

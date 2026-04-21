@@ -1,5 +1,7 @@
 import type { Provider } from '../types.js'
+import { anthropicProvider } from './anthropic.js'
 import { claudeProvider } from './claude.js'
+import { geminiProvider } from './gemini.js'
 import { ollamaProvider } from './ollama.js'
 import { openaiProvider } from './openai.js'
 
@@ -18,6 +20,8 @@ export function getAvailableProviders(): string[] {
 }
 
 // Register built-in providers
+register(anthropicProvider)
 register(claudeProvider)
+register(geminiProvider)
 register(ollamaProvider)
 register(openaiProvider)
