@@ -61,7 +61,7 @@ describe('ollama scraper (real connection)', () => {
 
       console.log('Settings page length:', html?.length || 0)
       expect(html).not.toBeNull()
-      expect(html).toContain('Cloud Usage')
+      expect(html).toContain('Cloud usage')
     })
 
     test('should scrape usage data from real page', async () => {

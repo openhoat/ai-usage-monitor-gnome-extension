@@ -22,55 +22,40 @@ export function parseOllamaPage(html: string): UsageResult | null {
   let resetDate: string | null = null
   let resetInHours: number | null = null
 
-  // Extract plan from badge
-  const planMatch = html.match(
-    /<span[^>]*?class="[^"]*?bg-neutral-100[^"]*?text-neutral-600[^"]*?capitalize[^"]*?"[^>]*?>(.*?)<\/span>/i
-  )
-  if (planMatch) {
-    plan = planMatch[1].trim().toLowerCase()
+  // Extract plan from badge (look for the badge in Cloud usage section)
+  // Try multiple patterns as Ollama page structure may vary
+  const usageSectionMatch =
+    html.match(/>Cloud usage<[\s\S]{0,500}?>(\w+)</) ||
+    html.match(/Cloud usage[\s\S]{0,200}?badge[^>]*>(\w+)<\//) ||
+    html.match(/data-testid="plan-badge"[^>]*>(\w+)</)
+  if (usageSectionMatch) {
+    plan = usageSectionMatch[1].trim().toLowerCase()
   }
 
   // Parse each usage section using regex
   // Looking for the patterns like: <span class="text-sm">...</span> and <span class="text-sm">...% used</span>
   // We use a more generic approach to find the usage blocks
   const blockMatches = html.matchAll(
-    /<div[^>]*?class="[^"]*flex justify-between[^"]*"[^>]*?>(.*?)<\/div>/gs
+    /class="flex justify-between[^>]*>\s*<span[^>]*>([\w][\w\s]*?)<\/span>\s*<span[^>]*>[\s\n]*(\d+(?:\.\d+)?\s*% used)/g
   )
   for (const blockMatch of blockMatches) {
-    const blockContent = blockMatch[1]
-    const spanMatches = Array.from(
-      blockContent.matchAll(/<span[^>]*?class="text-sm"[^>]*?>(.*?)<\/span>/gs)
-    )
+    const name = blockMatch[1].trim()
+    const valueText = blockMatch[2].trim()
 
-    if (spanMatches.length >= 2) {
-      const name = spanMatches[0][1].replace(/<[^>]*>?/gm, '').trim()
-      const valueText = spanMatches[1][1].replace(/<[^>]*>?/gm, '').trim()
+    let percentage = 0
 
-      let percentage = 0
+    // Parse percentage (e.g., "3.9% used" or "5% used")
+    const pctMatch = valueText.match(/(\d+(?:\.\d+)?)\s*%\s*used/i)
+    if (pctMatch) {
+      percentage = parseFloat(pctMatch[1])
+    }
 
-      // Parse percentage (e.g., "3.9% used")
-      const pctMatch = valueText.match(/(\d+(?:\.\d+)?)\s*%\s*used/i)
-      if (pctMatch) {
-        percentage = parseFloat(pctMatch[1])
-      } else {
-        // Parse fraction (e.g., "6/20 used")
-        const fracMatch = valueText.match(/(\d+)\s*\/\s*(\d+)\s*used/i)
-        if (fracMatch) {
-          const used = parseInt(fracMatch[1], 10)
-          const total = parseInt(fracMatch[2], 10)
-          if (total > 0) {
-            percentage = Math.round((used / total) * 10000) / 100
-          }
-        }
-      }
+    if (percentage > 0 || name) {
+      tiers.push({ name, percentage })
 
-      if (percentage > 0 || name) {
-        tiers.push({ name, percentage })
-
-        // Track overall percentage (use highest)
-        if (percentage > overallPercentage) {
-          overallPercentage = percentage
-        }
+      // Track overall percentage (use highest)
+      if (percentage > overallPercentage) {
+        overallPercentage = percentage
       }
     }
   }
@@ -136,10 +121,14 @@ export const ollamaProvider: Provider = {
     }
 
     // Check if we're actually logged in (login redirect detected)
+    // Ollama now uses WorkOS for auth — detect both old and new login page patterns
     if (
       html.includes('action="/signin"') ||
       html.includes('href="/login"') ||
-      html.includes('href="/signin"')
+      html.includes('href="/signin"') ||
+      html.includes('href="/sign-up') ||
+      html.includes('api/login?provider=') ||
+      html.includes('<title>Sign in</title>')
     ) {
       return {
         status: 'error',
